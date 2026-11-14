@@ -16,7 +16,9 @@ export async function GET(req: Request) {
   await connection(); // always run at request time: env vars and the auth header must never be frozen at build time
   const secret = process.env.CRON_SECRET;
   const token = process.env.GITHUB_DISPATCH_TOKEN;
-  if (!secret || !token) return Response.json({ configured: false, note: "Set CRON_SECRET and GITHUB_DISPATCH_TOKEN to enable the revive job." });
+  // Names only, never values: tells the owner which variable this deployment cannot see.
+  const missing = [["CRON_SECRET", secret], ["GITHUB_DISPATCH_TOKEN", token]].filter(([, v]) => !v).map(([k]) => k);
+  if (!secret || !token) return Response.json({ configured: false, missing, note: "Set the missing variables on Vercel (Production) and redeploy to enable the revive job." });
   if (req.headers.get("authorization") !== `Bearer ${secret}`) return Response.json({ error: "unauthorized" }, { status: 401 });
 
   const repo = process.env.GITHUB_REPO ?? "magdenoo0oo/egypt-pulse";

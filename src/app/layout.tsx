@@ -22,7 +22,7 @@ const plex = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: { default: "نبض مصر: أسعار الدولار والذهب كل يوم", template: "%s | نبض مصر" },
+  title: { default: "تسعيرة: أسعار الدولار والذهب بالجنيه المصري كل يوم", template: "%s | تسعيرة" },
   description: "أسعار العملات والذهب مقابل الجنيه المصري، بتاريخ كامل وAPI مفتوح، بتتحدّث كل يوم.",
 };
 
@@ -32,7 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-screen">
         <header className="mx-auto flex max-w-5xl items-center justify-between px-4 py-5">
           <Link href="/" className="font-display text-2xl font-bold tracking-tight">
-            نبض مصر
+            تسعيرة
           </Link>
           <nav className="flex gap-5 text-sm">
             <Link href="/" className="hover:underline">الأسعار</Link>

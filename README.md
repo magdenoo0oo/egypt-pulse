@@ -1,4 +1,4 @@
-# نبض مصر · Egypt Pulse
+# تسعيرة · Tas3era
 
 Arabic-first dashboard and open API for the Egyptian pound: USD, EUR, SAR, GBP and gold (24k/21k/18k, gold pound), with 90 days of history.
 

@@ -96,9 +96,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   border-radius: 10px;
 }
 
-/* One orchestrated moment: the rosette draws itself once. */
-@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
-.rosette path { stroke-dasharray: 1; stroke-dashoffset: 0; animation: draw 2.4s ease-out both; }
+/* Split-flap digit: a clipped column of 0-9 that slides (transform only). */
+.flap { position: relative; display: inline-block; height: 1.12em; width: 0.66em; overflow: hidden; border-radius: 0.09em; background: var(--ink); color: var(--paper); }
+.flap::after { content: ""; position: absolute; inset-inline: 0; top: 50%; height: 2px; background: var(--paper-2); opacity: 0.9; }
+.drum { display: block; height: 1120%; transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.flap-d { display: flex; height: 10%; align-items: center; justify-content: center; line-height: 1; }
 
 /* Ticker tape: the market's own convention. Pauses on hover and focus, static when motion is reduced. */
 @keyframes tape { from { transform: translateX(0); } to { transform: translateX(-50%); } }
@@ -116,7 +118,7 @@ details[open] > summary .plus { transform: rotate(45deg); }
 .plus { transition: transform 0.15s ease; }
 
 @media (prefers-reduced-motion: reduce) {
-  .rosette path { animation: none; }
+  .drum { transition: none; }
   .tape-track { animation: none; }
   .tape { overflow-x: auto; }
   .tile, .plus { transition: none; }

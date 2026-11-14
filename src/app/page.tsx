@@ -4,7 +4,7 @@ import { Faq } from "@/components/Faq";
 import { Heatmap } from "@/components/Heatmap";
 import { IndexChart } from "@/components/IndexChart";
 import { MultiConverter } from "@/components/MultiConverter";
-import { NoteHero } from "@/components/NoteHero";
+import { TimeHero } from "@/components/TimeHero";
 import { Panel } from "@/components/Panel";
 import { tone } from "@/components/RateList";
 import { Section } from "@/components/Section";
@@ -35,15 +35,22 @@ export default async function Home() {
     { key: "gold24", name: "الذهب عيار ٢٤", tone: "gold" as const, data: indexed(rows, "gold24") },
     { key: "silver", name: "الفضة", tone: "mute" as const, data: indexed(rows, "silver") },
   ];
+  const pts = (f: (r: (typeof rows)[number]) => number) => rows.map((r) => ({ date: r.date, v: f(r) }));
+  const assets = [
+    { key: "usd", label: "الدولار", unit: "جنيه لكل دولار أمريكي", href: "/currency/usd", data: pts((r) => r.usd) },
+    { key: "eur", label: "اليورو", unit: "جنيه لكل يورو", href: "/currency/eur", data: pts((r) => r.eur) },
+    { key: "sar", label: "الريال", unit: "جنيه لكل ريال سعودي", href: "/currency/sar", data: pts((r) => r.sar) },
+    { key: "gold21", label: "ذهب ٢١", unit: "جنيه لجرام الذهب عيار ٢١", href: "/gold/21", data: pts((r) => goldPrice(r.gold24, "21")) },
+  ];
   const report = marketReport(rows);
   const g21 = goldPrice(last.gold24, "21");
   const gch = change(rows, "gold24", 30);
 
   return (
     <main>
-      <div className="mx-auto mt-8 grid max-w-page gap-4 px-4 sm:px-6 lg:grid-cols-[2fr_1fr]">
-        <NoteHero rows={rows} />
-        <div className="grid gap-4">
+      <div className="mx-auto mt-8 max-w-page px-4 sm:px-6">
+        <TimeHero assets={assets} />
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
           <Panel vault title="الذهب" id="home-gold" aside="جرام عيار ٢١">
             <div className="flex items-end justify-between gap-4">
               <div>

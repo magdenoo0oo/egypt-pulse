@@ -39,6 +39,9 @@ export async function Footer() {
           <ul className="mt-3">
             <li><Link href={href("/convert")} className={link}>{t("nav.convert")}</Link></li>
             <li><Link href={href("/movers")} className={link}>{t("nav.movers")}</Link></li>
+            {([["/race", "nav.race"], ["/map", "nav.map"], ["/matrix", "nav.matrix"], ["/volatility", "nav.volatility"], ["/day", "nav.archive"]] as const).map(([h, k]) => (
+              <li key={h}><Link href={href(h)} className={link}>{t(k)}</Link></li>
+            ))}
             <li><Link href={href("/developers")} className={link}>{t("footer.api")}</Link></li>
           </ul>
         </nav>

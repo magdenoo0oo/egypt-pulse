@@ -93,6 +93,19 @@ export default async function Home() {
         <Heatmap rows={rows} />
       </Section>
 
+      <Section id="explore" title={t("home.explore.title")} lead={t("home.explore.lead")}>
+        <ul className="grid border-t border-line sm:grid-cols-2 lg:grid-cols-5">
+          {([["/race", "rc"], ["/map", "mp"], ["/matrix", "mx"], ["/volatility", "vl"], ["/day", "day.idx"]] as const).map(([h, k]) => (
+            <li key={h} className="border-b border-line lg:border-e lg:last:border-e-0">
+              <Link href={href(h)} className="block h-full py-5 hover:bg-paper-2 sm:px-4">
+                <span className="block font-display text-2xl font-bold">{t(`${k}.title` as "rc.title")}</span>
+                <span className="mt-1 block text-mute">{t(`${k}.lead` as "rc.lead")}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Section>
+
       <Section id="compare" title={t("home.cmp.title")} lead={t("home.cmp.lead")}>
         <Panel>
           <IndexChart lines={lines} label={t("home.cmp.label")} />

@@ -24,7 +24,10 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const rows = await getRows();
   return (
-    <html lang="ar" dir="rtl" className={`${reem.variable} ${plex.variable} ${amiri.variable} antialiased`}>
+    <html lang="ar" dir="rtl" suppressHydrationWarning className={`${reem.variable} ${plex.variable} ${amiri.variable} antialiased`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}` }} />
+      </head>
       <body className="min-h-screen">
         <Ticker rows={rows} />
         <Header />

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SITE } from "@/lib/currencies";
+import { ThemeToggle } from "./ThemeToggle";
 
 const NAV = [
   ["/currencies", "العملات"],
@@ -33,6 +34,7 @@ export function Header() {
               {l}
             </Link>
           ))}
+          <ThemeToggle />
         </nav>
       </div>
     </header>

@@ -55,3 +55,10 @@ export function baseOptions(el: Element): DeepPartial<ChartOptions> {
     handleScroll: { mouseWheel: false, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
   };
 }
+
+/** Calls `cb` when the page theme flips (the header toggle sets `data-theme` on <html>). Returns an unsubscribe. */
+export function onThemeChange(cb: () => void) {
+  const mo = new MutationObserver(cb);
+  mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  return () => mo.disconnect();
+}

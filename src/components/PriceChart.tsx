@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AreaSeries, createChart, type IChartApi, type ISeriesApi, type Time } from "lightweight-charts";
-import { alpha, baseOptions, fmtFull, num, token, type Pt, type Token } from "./chartKit";
+import { alpha, baseOptions, fmtFull, num, onThemeChange, token, type Pt, type Token } from "./chartKit";
 
 const RANGES = [
   [30, "شهر"],
@@ -43,12 +43,11 @@ export function PriceChart({
       const v = p.seriesData.get(s) as { value?: number } | undefined;
       setHover(p.time && v?.value !== undefined ? { v: v.value, t: p.time } : null);
     });
-    const mq = matchMedia("(prefers-color-scheme: dark)");
-    mq.addEventListener("change", apply);
+    const off = onThemeChange(apply);
     const raf = requestAnimationFrame(() => setReady(true));
     return () => {
       cancelAnimationFrame(raf);
-      mq.removeEventListener("change", apply);
+      off();
       c.remove();
       chart.current = null;
     };

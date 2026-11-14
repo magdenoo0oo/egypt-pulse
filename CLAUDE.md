@@ -30,7 +30,7 @@ CI: `.github/workflows/ci.yml` (lint + build). Daily job: `.github/workflows/dai
 ## Design (decided, do not re-open the concept)
 Concept C, "banknote x terminal" (owner chose it after seeing three options): the banknote identity stays as texture and brand, the page structure is a professional market terminal.
 - Paper is the page; `.vault` (globals.css) is a dark engraved surface that re-points every colour token, so any component works on paper or inside a vault panel. Use `<Panel vault>` / `<Section vault>`.
-- Tokens: paper #e6ede4, paper-2 #d8e2d4, ink #0f241c, mute #4d6358, note #1f5c46, gold #7d5c0d, up #1f6b4a, down #a63d28, line #b9c7bb, vault #0b1f17 (dark mode swaps all of them).
+- Tokens: paper #e6ede4, paper-2 #d8e2d4, ink #0f241c, mute #4d6358, note #1f5c46, gold #7d5c0d, up #1f6b4a, down #a63d28, line #b9c7bb, vault #0b1f17 (light is the default on every device; dark is opt-in via the header toggle, `data-theme="dark"` on <html>, stored in localStorage).
 - Type: Reem Kufi (display, numbers), IBM Plex Sans Arabic (UI, tables), Amiri (long-form prose: guides, reports).
 - The one memorable element: the home hero drawn as a banknote (`NoteHero`: corner denominations, rosette, gold security thread, serial). Everything else stays quiet and structured. The ticker tape is the only constant motion (pauses on hover/focus, static under reduced motion).
 - A rising foreign price uses the warning tone (the pound buys less); heatmap, day strip and movers follow the same rule.

@@ -19,21 +19,21 @@
   --vault: #0b1f17;
   --vault-2: #12291f;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #0d1914;
-    --paper-2: #14251d;
-    --paper-3: #1b3027;
-    --ink: #e3ece1;
-    --mute: #93a89b;
-    --note: #5fb592;
-    --gold: #d9ae4a;
-    --up: #62c08f;
-    --down: #e58a72;
-    --line: #27392f;
-    --vault: #07110c;
-    --vault-2: #0f1f17;
-  }
+/* Light is the default on every device; dark is an explicit choice (header toggle, stored locally). */
+:root[data-theme="dark"] {
+  --paper: #0d1914;
+  --paper-2: #14251d;
+  --paper-3: #1b3027;
+  --ink: #e3ece1;
+  --mute: #93a89b;
+  --note: #5fb592;
+  --gold: #d9ae4a;
+  --up: #62c08f;
+  --down: #e58a72;
+  --line: #27392f;
+  --vault: #07110c;
+  --vault-2: #0f1f17;
+  color-scheme: dark;
 }
 
 .vault {

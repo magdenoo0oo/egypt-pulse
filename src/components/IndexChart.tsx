@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { LineSeries, createChart, type Time } from "lightweight-charts";
-import { baseOptions, fmtFull, num, token, type Pt, type Token } from "./chartKit";
+import { baseOptions, fmtFull, num, onThemeChange, token, type Pt, type Token } from "./chartKit";
 
 export type Line = { key: string; name: string; tone: Token; data: Pt[] };
 
@@ -33,10 +33,9 @@ export function IndexChart({ lines, label, height = 380 }: { lines: Line[]; labe
       c.applyOptions(baseOptions(el));
       lines.forEach((l, i) => made[i][1].applyOptions({ color: token(el, l.tone) }));
     };
-    const mq = matchMedia("(prefers-color-scheme: dark)");
-    mq.addEventListener("change", apply);
+    const off = onThemeChange(apply);
     const raf = requestAnimationFrame(() => setReady(true));
-    return () => { cancelAnimationFrame(raf); mq.removeEventListener("change", apply); c.remove(); };
+    return () => { cancelAnimationFrame(raf); off(); c.remove(); };
   }, [lines, height]);
 
   return (

@@ -13,4 +13,5 @@ jobs:
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: npm run lint
+      - run: npx tsx scripts/check-i18n.ts
       - run: npm run build

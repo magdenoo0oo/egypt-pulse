@@ -2,6 +2,7 @@
  * Collects daily EGP reference rates into data/rates.csv.
  *   tsx scripts/collect.ts               -> today's snapshot
  *   tsx scripts/collect.ts --backfill 365 -> last 365 days (fills days that are missing or incomplete)
+ * data/meta.json records every check (checkedAt, latestDate, days, status: ok | stale | unreachable).
  * Source: fawazahmed0/currency-api (free, keyless, daily history).
  *
  * Every column is "EGP per `unit` units" (see src/lib/currencies.ts); gold24 and silver are EGP per gram
@@ -22,6 +23,7 @@ type Row = { date: string } & Record<Key, number>;
 const round = (n: number, d = 4) => Number(n.toFixed(d));
 
 async function fetchDay(date: string | "latest"): Promise<Row | null> {
+  if (process.env.COLLECT_OFFLINE) return null; // test hook: simulate an unreachable source
   const urls = [
     `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${date}/v1/currencies/usd.json`,
     `https://${date}.currency-api.pages.dev/v1/currencies/usd.json`,
@@ -43,6 +45,16 @@ async function fetchDay(date: string | "latest"): Promise<Row | null> {
       row.silver = round(r.egp / r.xag / OUNCE_GRAMS, 2);
       return row as Row;
     } catch {}
+  }
+  return null;
+}
+
+/** The source sometimes hiccups; try a few times before giving up. */
+async function fetchWithRetry(date: string | "latest", tries = 3): Promise<Row | null> {
+  for (let i = 0; i < tries; i++) {
+    const row = await fetchDay(date);
+    if (row) return row;
+    if (i < tries - 1) await new Promise((r) => setTimeout(r, 4000 * (i + 1)));
   }
   return null;
 }
@@ -89,13 +101,24 @@ async function main() {
       }
     }
   }
-  const today = await fetchDay("latest");
-  if (!today) throw new Error("could not fetch today's rates");
+  const today = await fetchWithRetry("latest");
+  const now = new Date();
+  if (!today) {
+    // Never invent data. Keep the stored history, record the failed check honestly, and let the next run try again.
+    const count = save(store);
+    const last = [...store.values()].filter((r) => complete(r)).map((r) => r.date).sort().at(-1) ?? "";
+    writeFileSync(META, JSON.stringify({ checkedAt: now.toISOString(), latestDate: last, days: count, status: "unreachable" }, null, 2) + "\n");
+    console.warn(`source unreachable; kept ${count} stored days, latest ${last}`);
+    return;
+  }
   store.set(today.date, today);
   const count = save(store);
+  // "stale" = the source has no day for yesterday yet (it lags sometimes); "ok" otherwise.
+  const yesterday = new Date(now.getTime() - 86_400_000).toISOString().slice(0, 10);
+  const status = today.date >= yesterday ? "ok" : "stale";
   // Records every successful check, even when the source has no new day yet.
-  writeFileSync(META, JSON.stringify({ checkedAt: new Date().toISOString(), latestDate: today.date, days: count }, null, 2) + "\n");
-  console.log(`rates.csv: ${count} days, latest ${today.date}`, today);
+  writeFileSync(META, JSON.stringify({ checkedAt: now.toISOString(), latestDate: today.date, days: count, status }, null, 2) + "\n");
+  console.log(`rates.csv: ${count} days, latest ${today.date}, status ${status}`, today);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

@@ -50,6 +50,14 @@ Done and verified: lint and build pass; CI green; daily workflow ran successfull
 - Link with `href("/path")` (adds the locale prefix); never write `/currency/usd` by hand in a page. Chart/converter strings live in the `c.*` keys.
 - Layout is logical-property based so RTL/LTR flips with `dir`; check any new physical `left/right/ml/pl` use.
 
+## Daily automation (what keeps the contribution graph green)
+- `.github/workflows/daily.yml` runs 3x a day (03:17, 11:17, 19:17 UTC) plus manual dispatch. One dropped or late cron never costs a day.
+- Every run is real work: `collect.ts --backfill 7` fetches the latest rates, heals days missed in the last week, and rewrites `data/meta.json` (`checkedAt`, `latestDate`, `days`, `status: ok | stale | unreachable`). Commit message `data: YYYY-MM-DD HH:MMZ`, so several a day are fine and distinct.
+- If the source is down the collector never invents data: it keeps the stored history, records `status: "unreachable"` and exits 0, so the failed check is still an honest, committed fact. (`COLLECT_OFFLINE=1` simulates that.)
+- Push step does `pull --rebase` and retries 3 times (the owner also pushes). A last step re-enables the schedule so GitHub does not pause it for inactivity.
+- Commits count on the graph only with an email linked to the GitHub account and on the default branch: the workflow uses the noreply email; set the local git email to `195882873+magdenoo0oo@users.noreply.github.com` in this repo. Never backdate or add empty commits.
+- CI (`ci.yml`) ignores `data/**` pushes; it runs lint, `scripts/check-i18n.ts` and the build.
+
 ## Gotchas (do not rediscover)
 1. This Next.js version differs from training data. Read `node_modules/next/dist/docs/` before coding (see AGENTS.md). `params` is a Promise; use the global `PageProps<"/route">` and `LayoutProps` types (generated at build, so plain `tsc` before the first build shows false errors).
 2. `export const dynamicParams` is not allowed with `cacheComponents`. Unlisted dynamic paths return 200 on the first hit, which is why `src/proxy.ts` exists.

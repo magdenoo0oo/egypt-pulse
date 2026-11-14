@@ -1,12 +1,17 @@
 name: daily-data
 
+# Three runs a day so one delayed or dropped cron never costs a day. Every run is real work:
+# it fetches the latest rates, heals any missed days from the last week, and records the check in data/meta.json.
 on:
   schedule:
-    - cron: "17 9 * * *" # 09:17 UTC daily
+    - cron: "17 3 * * *"
+    - cron: "17 11 * * *"
+    - cron: "17 19 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
+  actions: write # lets the job re-enable its own schedule (GitHub pauses idle ones)
 
 concurrency:
   group: daily-data
@@ -15,6 +20,7 @@ concurrency:
 jobs:
   collect:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,13 +28,22 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Collect today's rates
-        run: npx tsx scripts/collect.ts
-      - name: Commit data
+      - name: Collect rates (also fills any day missed in the last week)
+        run: npx tsx scripts/collect.ts --backfill 7
+      - name: Commit and push data
         run: |
           git config user.name  "magdenoo0oo"
           git config user.email "195882873+magdenoo0oo@users.noreply.github.com"
           git add data
-          git diff --cached --quiet && echo "nothing to commit" && exit 0
-          git commit -m "data: $(date -u +%F)"
-          git push
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -m "data: $(date -u +'%F %H:%MZ')"
+          ok=0
+          for i in 1 2 3; do
+            if git pull --rebase -q && git push -q; then ok=1; break; fi
+            sleep 5
+          done
+          [ "$ok" = 1 ]
+      - name: Keep the schedule alive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow enable daily.yml || true

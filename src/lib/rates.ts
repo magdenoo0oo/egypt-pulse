@@ -27,7 +27,7 @@ export async function getRows(): Promise<Row[]> {
   return loadRows();
 }
 
-export async function getMeta(): Promise<{ checkedAt: string; latestDate: string; days: number }> {
+export async function getMeta(): Promise<{ checkedAt: string; latestDate: string; days: number; status?: "ok" | "stale" | "unreachable" }> {
   "use cache";
   cacheLife("hours");
   return JSON.parse(await readFile(join(process.cwd(), "data", "meta.json"), "utf8"));

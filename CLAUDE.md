@@ -51,11 +51,13 @@ Done and verified: lint and build pass; CI green; daily workflow ran successfull
 - Layout is logical-property based so RTL/LTR flips with `dir`; check any new physical `left/right/ml/pl` use.
 
 ## Daily automation (what keeps the contribution graph green)
-- `.github/workflows/daily.yml` runs 3x a day (03:17, 11:17, 19:17 UTC) plus manual dispatch. One dropped or late cron never costs a day.
+- `.github/workflows/daily.yml` runs 6x a day (every 4 hours at :17 UTC) plus manual dispatch. One dropped or late cron never costs a day. The source publishes one new day, so runs after the first of a day are heartbeats; do not raise the frequency further (pure noise, history bloat, Vercel Hobby allows 100 deployments/day, and each data push redeploys).
 - Every run is real work: `collect.ts --backfill 7` fetches the latest rates, heals days missed in the last week, and rewrites `data/meta.json` (`checkedAt`, `latestDate`, `days`, `status: ok | stale | unreachable`). Commit message `data: YYYY-MM-DD HH:MMZ`, so several a day are fine and distinct.
 - If the source is down the collector never invents data: it keeps the stored history, records `status: "unreachable"` and exits 0, so the failed check is still an honest, committed fact. (`COLLECT_OFFLINE=1` simulates that.)
 - Push step does `pull --rebase` and retries 3 times (the owner also pushes). A last step re-enables the schedule so GitHub does not pause it for inactivity.
 - Commits count on the graph only with an email linked to the GitHub account and on the default branch: the workflow uses the noreply email; set the local git email to `195882873+magdenoo0oo@users.noreply.github.com` in this repo. Never backdate or add empty commits.
+- Second, independent trigger: Vercel Cron (`vercel.json`, daily 05:23 UTC) calls `/api/cron/revive` (`src/app/api/cron/revive/route.ts`), which re-enables `daily.yml` if GitHub paused it (it does that after ~60 days without repo activity, and a paused schedule cannot wake itself) and dispatches a run if the last success is older than 8 hours. It needs these Vercel env vars, otherwise it does nothing: `CRON_SECRET` (any long random string; Vercel sends it as a Bearer token), `GITHUB_DISPATCH_TOKEN` (fine-grained token on this repo with Actions: read and write; fine-grained tokens expire within a year, a classic token with `workflow` scope does not), `GITHUB_REPO` (`owner/repo`, only needed after the repo is renamed away from `magdenoo0oo/egypt-pulse`). The route must stay dynamic (`await connection()`): it was once prerendered at build time and silently ignored its env vars.
+- What the system cannot survive: the GitHub or Vercel account being closed, the data source (fawazahmed0/currency-api) disappearing, or both tokens above expiring. Nothing depends on the owner's computer.
 - CI (`ci.yml`) ignores `data/**` pushes; it runs lint, `scripts/check-i18n.ts` and the build.
 
 ## Gotchas (do not rediscover)

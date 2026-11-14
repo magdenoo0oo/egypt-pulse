@@ -1,12 +1,12 @@
 name: daily-data
 
-# Three runs a day so one delayed or dropped cron never costs a day. Every run is real work:
+# Six runs a day (every 4 hours) so a delayed or dropped cron never costs a day. Every run is real work:
 # it fetches the latest rates, heals any missed days from the last week, and records the check in data/meta.json.
+# The source only publishes one new day, so runs after the first of the day are heartbeats: more would just be noise.
+# A second trigger (Vercel Cron -> /api/cron/revive) re-enables and restarts this workflow if GitHub ever pauses it.
 on:
   schedule:
-    - cron: "17 3 * * *"
-    - cron: "17 11 * * *"
-    - cron: "17 19 * * *"
+    - cron: "17 */4 * * *"
   workflow_dispatch:
 
 permissions:

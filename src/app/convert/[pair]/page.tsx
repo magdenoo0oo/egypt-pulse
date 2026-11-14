@@ -65,7 +65,7 @@ export default async function PairPage({ params }: PageProps<"/convert/[pair]">)
         lead={`بآخر سعر مرجعي بتاريخ ${fmtDate(last.date)}: ١ ${meta.short} = ${fmt(perOne)} جنيه.`}
         icon={<CurrencyMark iso={meta.iso} size={72} />}
       />
-      <div className="mx-auto mt-8 grid max-w-page gap-4 px-4 sm:px-6 lg:grid-cols-[1.2fr_1fr]">
+      <div className="mx-auto mt-6 grid max-w-page gap-4 px-4 sm:px-6 xl:px-12 lg:grid-cols-[1.2fr_1fr]">
         <Panel vault title="حوّل الآن" id="c">
           <MultiConverter options={options} initialFrom={p.from} initialTo={p.to} />
           <Link href={`/convert/${reverse}`} className="mt-4 inline-flex min-h-11 items-center text-note underline">
@@ -86,7 +86,7 @@ export default async function PairPage({ params }: PageProps<"/convert/[pair]">)
           </table>
         </Panel>
       </div>
-      <div className="mx-auto mt-4 max-w-page px-4 sm:px-6">
+      <div className="mx-auto mt-4 max-w-page px-4 sm:px-6 xl:px-12">
         <Panel title={`سعر ${meta.name} بالجنيه`} id="h">
           <PriceChart data={hist} label={`تطور سعر ${meta.name} مقابل الجنيه`}>
             <Chart data={hist.slice(-90)} label={`تطور سعر ${meta.name} آخر ٩٠ يوم`} />
@@ -94,9 +94,9 @@ export default async function PairPage({ params }: PageProps<"/convert/[pair]">)
           <p className="mt-4"><Link href={`/currency/${code}`} className="inline-flex min-h-11 items-center text-note underline">التحليل الكامل لـ{meta.name}</Link></p>
         </Panel>
       </div>
-      <div className="mx-auto mt-20 max-w-page px-4 sm:px-6">
+      <div className="mx-auto mt-14 max-w-page px-4 sm:px-6 xl:px-12">
         <h2 className="font-display text-3xl font-bold">أسئلة شائعة</h2>
-        <div className="mt-6 max-w-3xl"><Faq items={faq} /></div>
+        <div className="mt-6"><Faq items={faq} /></div>
       </div>
     </main>
   );

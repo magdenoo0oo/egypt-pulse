@@ -7,9 +7,9 @@ export function Faq({ items }: { items: QA[] }) {
   return (
     <>
       <JsonLd data={{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: items.map((i) => ({ "@type": "Question", name: i.q, acceptedAnswer: { "@type": "Answer", text: i.a } })) }} />
-      <div className="divide-y divide-line border-y border-line">
+      <div className="border-t border-line lg:columns-2 lg:gap-14">
         {items.map((i) => (
-          <details key={i.q} className="group">
+          <details key={i.q} className="group break-inside-avoid border-b border-line">
             <summary className="flex min-h-14 items-center justify-between gap-4 py-3 text-lg font-semibold">
               {i.q}
               <span aria-hidden className="plus text-2xl text-note">+</span>

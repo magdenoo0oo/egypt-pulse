@@ -72,7 +72,7 @@ export default async function CurrencyPage({ params }: PageProps<"/currency/[cod
         </div>
       </PageHead>
 
-      <div className="mx-auto mt-8 grid max-w-page gap-4 px-4 sm:px-6 lg:grid-cols-[2fr_1fr]">
+      <div className="mx-auto mt-6 grid max-w-page gap-4 px-4 sm:px-6 xl:px-12 lg:grid-cols-[2fr_1fr]">
         <Panel vault title="تاريخ السعر" id="hist" aside={`حتى ${fmtDate(last.date)}`}>
           <PriceChart data={hist} label={`تطور سعر ${meta.name} مقابل الجنيه`}>
             <Chart data={hist.slice(-90)} label={`تطور سعر ${meta.name} خلال آخر ٩٠ يوم`} />
@@ -98,7 +98,7 @@ export default async function CurrencyPage({ params }: PageProps<"/currency/[cod
         </div>
       </div>
 
-      <div className="mx-auto mt-4 grid max-w-page gap-4 px-4 sm:px-6 lg:grid-cols-[2fr_1fr]">
+      <div className="mx-auto mt-4 grid max-w-page gap-4 px-4 sm:px-6 xl:px-12 lg:grid-cols-[2fr_1fr]">
         <Panel title="حركة كل يوم خلال سنة" id="strip" aside="كل مربع يوم">
           <DayStrip days={dailyChanges(rows, code)} label={`حركة ${meta.name} اليومية`} />
         </Panel>
@@ -107,7 +107,7 @@ export default async function CurrencyPage({ params }: PageProps<"/currency/[cod
         </Panel>
       </div>
 
-      <div className="mx-auto mt-20 grid max-w-page gap-12 px-4 sm:px-6 lg:grid-cols-[1.5fr_1fr]">
+      <div className="mx-auto mt-14 grid max-w-page gap-12 px-4 sm:px-6 xl:px-12 lg:grid-cols-[minmax(0,46rem)_minmax(0,30rem)] lg:justify-between">
         <section aria-labelledby="analysis">
           <h2 id="analysis" className="font-display text-3xl font-bold">قراءة سريعة للسعر</h2>
           <div className="mt-4 max-w-[62ch] font-serif text-xl leading-[2]">
@@ -131,12 +131,12 @@ export default async function CurrencyPage({ params }: PageProps<"/currency/[cod
         </section>
       </div>
 
-      <div className="mx-auto mt-20 max-w-page px-4 sm:px-6">
+      <div className="mx-auto mt-14 max-w-page px-4 sm:px-6 xl:px-12">
         <h2 className="font-display text-3xl font-bold">أسئلة عن {meta.name}</h2>
-        <div className="mt-6 max-w-3xl"><Faq items={faq} /></div>
+        <div className="mt-6"><Faq items={faq} /></div>
       </div>
 
-      <div className="mx-auto mt-20 max-w-page px-4 sm:px-6">
+      <div className="mx-auto mt-14 max-w-page px-4 sm:px-6 xl:px-12">
         <h2 className="font-display text-3xl font-bold">عملات قريبة</h2>
         <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {related.map((c) => (

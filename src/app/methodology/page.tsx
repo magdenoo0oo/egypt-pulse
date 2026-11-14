@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { PageHead } from "@/components/PageHead";
+import { Panel } from "@/components/Panel";
 import { Prose } from "@/components/Prose";
+import { CODES } from "@/lib/currencies";
 import { getMeta } from "@/lib/rates";
 import { fmtDate } from "@/lib/format";
 
@@ -15,7 +17,7 @@ export default async function Methodology() {
   return (
     <main>
       <PageHead crumbs={[{ label: "المنهجية" }]} title="المنهجية والمصادر" lead="من أين بتيجي الأرقام، وإزاي بتتحسب، وإيه حدودها." />
-      <div className="mx-auto mt-10 max-w-page px-4 sm:px-6">
+      <div className="mx-auto mt-8 grid max-w-page gap-10 px-4 sm:px-6 xl:px-12 lg:grid-cols-[minmax(0,46rem)_22rem] lg:justify-between">
         <Prose
           blocks={[
             { type: "h", text: "مصدر الأسعار" },
@@ -36,6 +38,16 @@ export default async function Methodology() {
             { type: "note", text: "مش نصيحة مالية. لو لقيت رقم غلط، افتح issue على GitHub في مستودع المشروع." },
           ]}
         />
+        <aside className="h-fit lg:sticky lg:top-6">
+          <Panel vault title="الأرقام في سطور" id="facts">
+            <dl className="grid gap-4">
+              <div><dt className="text-sm text-mute">آخر يوم متاح</dt><dd className="font-display text-2xl font-bold">{fmtDate(meta.latestDate)}</dd></div>
+              <div><dt className="text-sm text-mute">أيام التاريخ المسجّلة</dt><dd className="font-display text-2xl font-bold">{meta.days}</dd></div>
+              <div><dt className="text-sm text-mute">العملات</dt><dd className="font-display text-2xl font-bold">{CODES.length}</dd></div>
+              <div><dt className="text-sm text-mute">التحديث</dt><dd className="text-lg">مرة كل يوم</dd></div>
+            </dl>
+          </Panel>
+        </aside>
       </div>
     </main>
   );

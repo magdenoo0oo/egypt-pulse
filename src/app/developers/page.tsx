@@ -23,7 +23,7 @@ export default function Developers() {
   return (
     <main>
       <PageHead crumbs={[{ label: "API" }]} title="API مفتوح" lead="نفس البيانات اللي في الموقع، JSON جاهز لأي تطبيق أو بوت. من غير مفتاح ومن غير تسجيل." />
-      <div className="mx-auto mt-8 grid max-w-page gap-4 px-4 sm:px-6 lg:grid-cols-[1.4fr_1fr]">
+      <div className="mx-auto mt-6 grid max-w-page gap-4 px-4 sm:px-6 xl:px-12 lg:grid-cols-[1.4fr_1fr]">
         <Panel title="المسارات" id="ep">
           <ul className="divide-y divide-line">
             {endpoints.map(([path, desc]) => (

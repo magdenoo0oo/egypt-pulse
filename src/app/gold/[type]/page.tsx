@@ -57,7 +57,7 @@ export default async function GoldType({ params }: PageProps<"/gold/[type]">) {
         </div>
       </PageHead>
 
-      <div className="mx-auto mt-8 grid max-w-page gap-4 px-4 sm:px-6 lg:grid-cols-[2fr_1fr]">
+      <div className="mx-auto mt-6 grid max-w-page gap-4 px-4 sm:px-6 xl:px-12 lg:grid-cols-[2fr_1fr]">
         <Panel vault title="تاريخ السعر" id="h">
           <PriceChart data={hist} tone="gold" label={`تطور سعر ${g.label}`}>
             <Chart data={hist.slice(-90)} label={`تطور سعر ${g.label} آخر ٩٠ يوم`} />
@@ -72,13 +72,13 @@ export default async function GoldType({ params }: PageProps<"/gold/[type]">) {
         </div>
       </div>
 
-      <div className="mx-auto mt-4 max-w-page px-4 sm:px-6">
+      <div className="mx-auto mt-4 max-w-page px-4 sm:px-6 xl:px-12">
         <Panel title="حركة كل يوم" id="d"><DayStrip days={dailyChanges(rows, "gold24")} label={`حركة ${g.name} اليومية`} /></Panel>
       </div>
 
-      <div className="mx-auto mt-20 max-w-page px-4 sm:px-6">
+      <div className="mx-auto mt-14 max-w-page px-4 sm:px-6 xl:px-12">
         <h2 className="font-display text-3xl font-bold">أسئلة عن {g.name}</h2>
-        <div className="mt-6 max-w-3xl"><Faq items={faq} /></div>
+        <div className="mt-6"><Faq items={faq} /></div>
         <ul className="mt-10 flex flex-wrap gap-2">
           {GOLD_TYPES.filter((t) => t !== type).map((t) => (
             <li key={t}><Link href={`/gold/${t}`} className="inline-flex min-h-11 items-center rounded-md border border-line px-4 hover:bg-paper-2">{GOLD[t].name}</Link></li>

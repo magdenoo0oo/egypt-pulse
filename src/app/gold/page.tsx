@@ -56,7 +56,7 @@ export default async function Gold() {
         </div>
       </PageHead>
 
-      <div className="mx-auto mt-8 max-w-page px-4 sm:px-6">
+      <div className="mx-auto mt-6 max-w-page px-4 sm:px-6 xl:px-12">
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {GOLD_TYPES.map((t) => (
             <li key={t}>
@@ -73,7 +73,7 @@ export default async function Gold() {
         </ul>
       </div>
 
-      <div className="mx-auto mt-4 grid max-w-page gap-4 px-4 sm:px-6 lg:grid-cols-[2fr_1fr]">
+      <div className="mx-auto mt-4 grid max-w-page gap-4 px-4 sm:px-6 xl:px-12 lg:grid-cols-[2fr_1fr]">
         <Panel vault title="جرام عيار ٢٤" id="g-hist">
           <PriceChart data={hist} tone="gold" label="تطور سعر جرام الذهب عيار ٢٤ بالجنيه">
             <Chart data={hist.slice(-90)} label="تطور سعر جرام الذهب عيار ٢٤ آخر ٩٠ يوم" />
@@ -93,7 +93,7 @@ export default async function Gold() {
         </Panel>
       </Section>
 
-      <div className="mx-auto mt-20 grid max-w-page gap-10 px-4 sm:px-6 lg:grid-cols-[1.4fr_1fr]">
+      <div className="mx-auto mt-14 grid max-w-page gap-10 px-4 sm:px-6 xl:px-12 lg:grid-cols-[1.4fr_1fr]">
         <section aria-labelledby="gr">
           <h2 id="gr" className="font-display text-3xl font-bold">قراءة سريعة</h2>
           <div className="mt-4 max-w-[62ch] font-serif text-xl leading-[2]">
@@ -108,7 +108,7 @@ export default async function Gold() {
       </Section>
 
       <Section id="faq" title="أسئلة عن الذهب">
-        <div className="max-w-3xl"><Faq items={FAQ} /></div>
+        <div><Faq items={FAQ} /></div>
         <p className="mt-8 flex flex-wrap gap-x-6">
           {GUIDES.filter((g) => g.category === "gold").map((g) => (
             <Link key={g.slug} href={`/guides/${g.slug}`} className="inline-flex min-h-11 items-center text-note underline">{g.title}</Link>

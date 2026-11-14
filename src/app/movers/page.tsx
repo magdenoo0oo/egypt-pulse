@@ -37,7 +37,7 @@ export default async function Movers() {
   return (
     <main>
       <PageHead crumbs={[{ label: "الحركة" }]} title="الحركة: مين طلع ومين نزل" lead="الأحمر معناه إن السعر زاد (الجنيه بيشتري أقل)، والأخضر معناه إنه نزل." />
-      <div className="mx-auto mt-8 grid max-w-page gap-4 px-4 sm:px-6 lg:grid-cols-2">
+      <div className="mx-auto mt-6 grid max-w-page gap-4 px-4 sm:px-6 xl:px-12 lg:grid-cols-2">
         <Panel vault title="التغيّر آخر ٣٠ يوم" id="bars">
           <ul className="grid gap-1">
             {mv.map((m) => (
@@ -73,7 +73,7 @@ export default async function Movers() {
         </Panel>
       </div>
 
-      <div className="mx-auto mt-4 max-w-page px-4 sm:px-6">
+      <div className="mx-auto mt-4 max-w-page px-4 sm:px-6 xl:px-12">
         <Panel title="الجدول الكامل" id="tbl">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[40rem] text-start">

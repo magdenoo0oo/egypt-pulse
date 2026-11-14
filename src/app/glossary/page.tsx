@@ -14,7 +14,7 @@ export default function Glossary() {
     <main>
       <JsonLd data={{ "@context": "https://schema.org", "@type": "DefinedTermSet", name: "قاموس مصطلحات العملات والذهب", hasDefinedTerm: GLOSSARY.map((g) => ({ "@type": "DefinedTerm", name: g.term, description: g.def })) }} />
       <PageHead crumbs={[{ href: "/guides", label: "الأدلة" }, { label: "القاموس" }]} title="قاموس المصطلحات" lead={`${GLOSSARY.length} مصطلح بتقابله في أسعار العملات والذهب، مشروحة ببساطة.`} />
-      <dl className="mx-auto mt-10 grid max-w-page gap-x-12 px-4 sm:px-6 md:grid-cols-2">
+      <dl className="mx-auto mt-8 grid max-w-page gap-x-12 px-4 sm:px-6 xl:px-12 md:grid-cols-2 xl:grid-cols-3">
         {GLOSSARY.map((g) => (
           <div key={g.term} className="border-b border-line py-5">
             <dt className="font-display text-2xl font-bold">

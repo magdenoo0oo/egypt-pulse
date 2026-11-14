@@ -28,7 +28,7 @@ export default async function Convert() {
         title="محوّل العملات"
         lead={`حوّل بين أي عملتين من ${CODES.length + 1} عملة بسعر ${fmtDate(last.date)}. السعر مرجعي وليس سعر بنك.`}
       />
-      <div className="mx-auto mt-8 max-w-3xl px-4 sm:px-6">
+      <div className="mx-auto mt-6 max-w-3xl px-4 sm:px-6 xl:px-12">
         <Panel vault title="حوّل" id="c"><MultiConverter options={options} /></Panel>
       </div>
       <Section id="pairs" title="تحويلات جاهزة" lead="صفحة لكل عملة من وإلى الجنيه، فيها جدول مبالغ شائعة.">

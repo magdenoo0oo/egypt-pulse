@@ -9,9 +9,9 @@ const link = "inline-flex min-h-9 items-center hover:underline";
 export async function Footer() {
   const m = await getMeta();
   return (
-    <footer className="vault mt-28">
+    <footer className="vault mt-16">
       <div aria-hidden className="engrave h-3 border-b border-line" />
-      <div className="mx-auto grid max-w-page gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.3fr_1.4fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-page gap-10 px-4 py-10 sm:px-6 xl:px-12 md:grid-cols-[1.3fr_1.4fr_1fr_1fr]">
         <div>
           <p className="font-display text-4xl font-bold">تسعيرة</p>
           <p className="mt-3 max-w-[38ch] text-mute">
@@ -56,7 +56,7 @@ export async function Footer() {
         </nav>
       </div>
       <div className="border-t border-line">
-        <div className="mx-auto flex max-w-page flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-5 text-sm text-mute sm:px-6">
+        <div className="mx-auto flex max-w-page flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-5 text-sm text-mute sm:px-6 xl:px-12">
           <p>آخر فحص للبيانات: {fmtDateTime(m.checkedAt)}. البيانات بتتحدّث وتتسجّل أوتوماتيك كل يوم، والـ commits على GitHub من الأتمتة.</p>
           <p>
             الرسوم التفاعلية:{" "}

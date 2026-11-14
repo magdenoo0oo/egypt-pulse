@@ -66,7 +66,7 @@
   --font-display: var(--font-reem), system-ui, sans-serif;
   --font-sans: var(--font-plex), system-ui, sans-serif;
   --font-serif: var(--font-amiri), "Noto Naskh Arabic", serif;
-  --container-page: 80rem;
+  --container-page: 120rem;
 }
 
 html { background: var(--paper); color: var(--ink); scroll-behavior: smooth; }

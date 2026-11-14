@@ -48,32 +48,46 @@ export default async function Home() {
 
   return (
     <main>
-      <div className="mx-auto mt-8 max-w-page px-4 sm:px-6">
+      <div className="mx-auto mt-5 max-w-page px-4 sm:px-6 xl:px-12">
         <TimeHero assets={assets} />
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Panel vault title="الذهب" id="home-gold" aside="جرام عيار ٢١">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="font-display text-6xl font-bold leading-none text-gold">{fmtInt(g21)}</p>
+                <p className="font-display text-5xl font-bold leading-none text-gold">{fmtInt(g21)}</p>
                 <p className={`mt-2 ${tone(gch.pct)}`}>{fmtPct(gch.pct)} آخر ٣٠ يوم</p>
               </div>
-              <Bullion className="w-32 text-ink" />
+              <Bullion className="w-24 text-ink" />
             </div>
-            <Link href="/gold" className="mt-5 inline-flex min-h-11 items-center text-note underline">كل العيارات والحاسبة</Link>
+            <Link href="/gold" className="mt-4 inline-flex min-h-11 items-center text-note underline">كل العيارات والحاسبة</Link>
           </Panel>
-          <Panel title="الأعلى والأدنى" id="home-mv" aside="٣٠ يوم">
-            <ul className="divide-y divide-line">
-              {[...mv.slice(0, 3), ...mv.slice(-2)].map((m) => (
-                <li key={m.key}>
-                  <Link href={m.href} className="flex min-h-11 items-center justify-between hover:bg-paper-3">
-                    <span>{m.name}</span>
-                    <span className={tone(m.pct)}>{fmtPct(m.pct)}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <Link href="/movers" className="mt-3 inline-flex min-h-11 items-center text-note underline">الترتيب الكامل</Link>
+          <Panel vault title="الفضة" id="home-silver" aside="جرام ٩٩٩">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="font-display text-5xl font-bold leading-none">{fmt(last.silver)}</p>
+                <p className={`mt-2 ${tone(change(rows, "silver", 30).pct)}`}>{fmtPct(change(rows, "silver", 30).pct)} آخر ٣٠ يوم</p>
+              </div>
+              <Bullion tone="silver" className="w-24 text-ink" />
+            </div>
+            <Link href="/silver" className="mt-4 inline-flex min-h-11 items-center text-note underline">تفاصيل الفضة</Link>
           </Panel>
+          {[
+            ["الأكتر ارتفاعًا", mv.slice(0, 4), "home-up"],
+            ["الأكتر انخفاضًا", mv.slice(-4).reverse(), "home-down"],
+          ].map(([title, list, id]) => (
+            <Panel key={id as string} title={title as string} id={id as string} aside="٣٠ يوم">
+              <ul className="divide-y divide-line">
+                {(list as typeof mv).map((m) => (
+                  <li key={m.key}>
+                    <Link href={m.href} className="flex min-h-11 items-center justify-between hover:bg-paper-3">
+                      <span>{m.name}</span>
+                      <span className={tone(m.pct)}>{fmtPct(m.pct)}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          ))}
         </div>
       </div>
 
@@ -93,9 +107,9 @@ export default async function Home() {
       </Section>
 
       <Section id="report" title="تقرير السوق" lead="مكتوب أوتوماتيك من أرقام اليوم، من غير رأي ولا توقعات.">
-        <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
-          <div className="max-w-[62ch] font-serif text-xl leading-[2]">
-            {report.map((p) => <p key={p} className="mt-4 first:mt-0">{p}</p>)}
+        <div className="grid gap-10 lg:grid-cols-[1fr_26rem]">
+          <div className="font-serif text-xl leading-[2] lg:columns-2 lg:gap-12">
+            {report.map((p) => <p key={p} className="mb-4 break-inside-avoid">{p}</p>)}
           </div>
           <Panel title="حوّل بسرعة" id="home-conv" vault>
             <MultiConverter options={options} />
@@ -104,9 +118,9 @@ export default async function Home() {
       </Section>
 
       <Section id="guides" title="أدلة بتفيدك قبل ما تشتري أو تحوّل" lead="شرح مبسّط للذهب والعملات بدون مصطلحات معقدة." aside={<Link href="/guides" className="inline-flex min-h-11 items-center text-note underline">كل الأدلة</Link>}>
-        <ul className="divide-y divide-line border-y border-line">
+        <ul className="grid border-t border-line lg:grid-cols-2 lg:gap-x-14">
           {GUIDES.slice(0, 4).map((g) => (
-            <li key={g.slug}>
+            <li key={g.slug} className="border-b border-line">
               <Link href={`/guides/${g.slug}`} className="grid gap-1 py-5 hover:bg-paper-2 sm:grid-cols-[1fr_auto] sm:items-baseline sm:gap-8 sm:px-3">
                 <span>
                   <span className="block font-display text-2xl font-bold">{g.title}</span>
@@ -137,7 +151,7 @@ export default async function Home() {
       </Section>
 
       <Section id="faq" title="أسئلة شائعة" lead={`آخر سعر للدولار عندنا ${fmt(last.usd)} جنيه.`}>
-        <div className="max-w-3xl"><Faq items={FAQ} /></div>
+        <div><Faq items={FAQ} /></div>
       </Section>
     </main>
   );

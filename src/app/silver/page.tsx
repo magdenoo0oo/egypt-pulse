@@ -41,7 +41,7 @@ export default async function Silver() {
         </div>
       </PageHead>
 
-      <div className="mx-auto mt-8 max-w-page px-4 sm:px-6">
+      <div className="mx-auto mt-6 max-w-page px-4 sm:px-6 xl:px-12">
         <ul className="grid gap-3 sm:grid-cols-3">
           {PURITY.map(([name, f]) => (
             <li key={name} className="rounded-[10px] border border-line bg-paper-2 p-5">
@@ -53,7 +53,7 @@ export default async function Silver() {
         </ul>
       </div>
 
-      <div className="mx-auto mt-4 grid max-w-page gap-4 px-4 sm:px-6 lg:grid-cols-[2fr_1fr]">
+      <div className="mx-auto mt-4 grid max-w-page gap-4 px-4 sm:px-6 xl:px-12 lg:grid-cols-[2fr_1fr]">
         <Panel vault title="تاريخ السعر" id="h">
           <PriceChart data={hist} tone="mute" label="تطور سعر جرام الفضة بالجنيه">
             <Chart data={hist.slice(-90)} label="تطور سعر جرام الفضة آخر ٩٠ يوم" />
@@ -64,7 +64,7 @@ export default async function Silver() {
           <Panel title="الأداء" id="pp"><PeriodTable rows={rows} k="silver" caption="تغيّر وأدنى وأعلى سعر جرام الفضة" /></Panel>
         </div>
       </div>
-      <div className="mx-auto mt-4 max-w-page px-4 sm:px-6">
+      <div className="mx-auto mt-4 max-w-page px-4 sm:px-6 xl:px-12">
         <Panel title="حركة كل يوم" id="d"><DayStrip days={dailyChanges(rows, "silver")} label="حركة الفضة اليومية" /></Panel>
         <p className="mt-8">كمان: <Link className="text-note underline" href="/gold">سعر الذهب</Link> و<Link className="text-note underline" href="/movers">ترتيب الحركة</Link>.</p>
       </div>

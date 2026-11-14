@@ -27,7 +27,7 @@ export default async function GuidePage({ params }: PageProps<"/guides/[slug]">)
     <main>
       <JsonLd data={{ "@context": "https://schema.org", "@type": "Article", headline: g.title, description: g.summary, inLanguage: "ar", mainEntityOfPage: `${SITE.url}/guides/${slug}` }} />
       <PageHead crumbs={[{ href: "/guides", label: "الأدلة" }, { label: g.title }]} title={g.title} lead={`${g.summary} (${g.minutes} دقايق قراءة)`} />
-      <div className="mx-auto mt-10 grid max-w-page gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_18rem]">
+      <div className="mx-auto mt-8 grid max-w-page gap-12 px-4 sm:px-6 xl:px-12 lg:grid-cols-[minmax(0,46rem)_20rem] lg:justify-between">
         <article><Prose blocks={g.blocks} /></article>
         <aside className="grid h-fit gap-8 lg:sticky lg:top-6">
           <section aria-labelledby="rel">

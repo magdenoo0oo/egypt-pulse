@@ -92,11 +92,13 @@ export function TimeHero({ assets }: { assets: Asset[] }) {
 
   const warm = diff > 0 ? "text-down" : diff < 0 ? "text-up" : "text-mute";
 
+  const em = chars.reduce((t, c, i) => t + (DIGITS.includes(c) ? 0.66 : 0.4) + (i ? 0.12 : 0), 0);
+
   return (
     <section aria-labelledby="hero-h" className="timehero relative overflow-hidden rounded-[14px] border-2 border-ink bg-paper-2">
       <div aria-hidden className="engrave h-3 border-b-2 border-ink" />
-      <div className="px-5 pb-7 pt-6 sm:px-10">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="px-5 pb-5 pt-5 sm:px-8 xl:px-10">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 id="hero-h" className="font-display text-xl font-bold sm:text-2xl">أسعار اليوم بالجنيه المصري</h1>
           <div className="flex flex-wrap gap-1" role="group" aria-label="اختر الأصل">
             {assets.map((x, i) => (
@@ -113,68 +115,76 @@ export function TimeHero({ assets }: { assets: Asset[] }) {
           </div>
         </div>
 
-        <div className="mt-8 grid items-end gap-x-10 gap-y-6 lg:grid-cols-[auto_1fr]">
-          <div>
-            <p className="text-lg text-mute" aria-live="off">
-              {atToday ? "النهارده" : "في"} <span className="font-semibold text-ink">{fmtDay(cur.date)}</span>
-            </p>
-            <p dir="ltr" className="mt-2 flex items-center gap-[0.12em] text-[clamp(3.6rem,13.5vw,9.5rem)] font-display font-bold leading-none" role="text" aria-label={`${a.label}: ${money.format(cur.v)} جنيه`}>
-              {chars.map((c, i) => {
-                const d = DIGITS.indexOf(c);
-                return d >= 0 ? <Drum key={`${chars.length}-${i}`} d={d} /> : <span key={`${chars.length}-${i}`} aria-hidden className="px-[0.02em] text-[0.6em] text-mute">{c}</span>;
-              })}
-            </p>
-            <p className="mt-2 text-mute">{a.unit}</p>
-          </div>
-          <div className="max-w-[34ch] pb-2 text-xl leading-9" aria-live="polite">
-            {atToday ? (
-              <p>
-                <span className={`font-semibold ${warm}`}>{sign(diff)} جنيه ({sign(pct)}٪)</span> عن آخر يوم قبله.
-                <span className="block text-base text-mute">اسحب على الخط تحت وشوف أي يوم في السنة.</span>
+        <div className="mt-5 grid gap-x-10 gap-y-5 lg:grid-cols-[minmax(0,38rem)_minmax(0,1fr)] xl:gap-x-14">
+          <div className="flex min-w-0 flex-col justify-between gap-5 [container-type:inline-size]">
+            <div>
+              <p className="text-lg text-mute" aria-live="off">
+                {atToday ? "النهارده" : "في"} <span className="font-semibold text-ink">{fmtDay(cur.date)}</span>
               </p>
-            ) : (
-              <p>
-                من ساعتها {diff > 0 ? "زاد" : "قلّ"} <span className={`font-semibold ${warm}`}>{money.format(Math.abs(diff))} جنيه</span> ({sign(pct)}٪).
-                <button type="button" onClick={() => { stop(); setIdx(last); }} className="mt-1 block min-h-11 text-base text-note underline">ارجع للنهارده</button>
+              <p
+                dir="ltr"
+                className="mt-2 flex items-center gap-[0.12em] font-display font-bold leading-none"
+                style={{ fontSize: `min(9rem, ${(100 / em).toFixed(2)}cqw)` }}
+                role="text"
+                aria-label={`${a.label}: ${money.format(cur.v)} جنيه`}
+              >
+                {chars.map((c, i) => {
+                  const d = DIGITS.indexOf(c);
+                  return d >= 0 ? <Drum key={`${chars.length}-${i}`} d={d} /> : <span key={`${chars.length}-${i}`} aria-hidden className="px-[0.02em] text-[0.6em] text-mute">{c}</span>;
+                })}
               </p>
-            )}
+              <p className="mt-2 text-mute">{a.unit}</p>
+            </div>
+            <div className="text-xl leading-9" aria-live="polite">
+              {atToday ? (
+                <p>
+                  <span className={`font-semibold ${warm}`}>{sign(diff)} جنيه ({sign(pct)}٪)</span> عن آخر يوم قبله.
+                  <span className="block text-base text-mute">اسحب على الخط وشوف أي يوم في السنة.</span>
+                </p>
+              ) : (
+                <p>
+                  من ساعتها {diff > 0 ? "زاد" : "قلّ"} <span className={`font-semibold ${warm}`}>{money.format(Math.abs(diff))} جنيه</span> ({sign(pct)}٪).
+                  <button type="button" onClick={() => { stop(); setIdx(last); }} className="mt-1 block min-h-11 text-base text-note underline">ارجع للنهارده</button>
+                </p>
+              )}
+            </div>
+            <Link href={a.href} className="inline-flex min-h-11 w-fit items-center text-base text-note underline">تحليل {a.label} الكامل</Link>
           </div>
-        </div>
 
-        <div dir="ltr" className="relative mt-8 h-[15rem] touch-pan-y select-none sm:h-[17rem]">
-          <svg viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden className="absolute inset-0 h-full w-full">
-            <defs>
-              <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
-                <line x1="0" y1="0" x2="0" y2="7" stroke="var(--note)" strokeWidth="1.2" opacity="0.5" />
-              </pattern>
-              <clipPath id="after"><rect x={(idx / last) * 1000} y="0" width="1000" height="260" /></clipPath>
-            </defs>
-            <path d={area} fill="url(#hatch)" opacity="0.65" />
-            <path d={path} fill="none" stroke="var(--ink)" strokeWidth="2.5" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
-            <path d={path} fill="none" stroke="var(--gold)" strokeWidth="5" vectorEffect="non-scaling-stroke" strokeLinejoin="round" clipPath="url(#after)" />
-          </svg>
-          <div aria-hidden className="absolute inset-y-0 w-px bg-ink" style={{ left: `${xPct}%` }} />
-          <div aria-hidden className="absolute size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-ink bg-gold" style={{ left: `${xPct}%`, top: `${yPct}%` }} />
-          <span aria-hidden className="absolute start-1 top-1 rounded bg-paper-2 px-1 text-sm text-mute">{money.format(hi)}</span>
-          <span aria-hidden className="absolute bottom-7 start-1 rounded bg-paper-2 px-1 text-sm text-mute">{money.format(lo)}</span>
-          <ul aria-hidden className="absolute inset-x-0 bottom-0 h-5 text-sm text-mute">
-            {months.map((m, k) => <li key={m.i} className={`absolute -translate-x-1/2 ${k % 2 ? "hidden sm:block" : ""}`} style={{ left: `${(m.i / last) * 100}%` }}>{m.label}</li>)}
-          </ul>
-          <input
-            type="range"
-            min={0}
-            max={last}
-            value={Math.min(idx, last)}
-            onChange={(e) => { stop(); setIdx(Number(e.target.value)); }}
-            onPointerDown={stop}
-            aria-label={`اختر يومًا لعرض سعر ${a.label}`}
-            aria-valuetext={`${fmtDay(cur.date)}: ${money.format(cur.v)} جنيه`}
-            className="absolute inset-0 h-full w-full cursor-ew-resize opacity-0"
-          />
-        </div>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-mute">
-          <p>الخط الذهبي هو اللي حصل من اليوم المختار لحد النهارده.</p>
-          <Link href={a.href} className="inline-flex min-h-11 items-center text-base text-note underline">تحليل {a.label} الكامل</Link>
+          <div className="flex min-w-0 flex-col">
+            <div dir="ltr" className="relative h-[15rem] touch-pan-y select-none sm:h-[18rem] lg:min-h-[22rem] lg:flex-1">
+              <svg viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden className="absolute inset-0 h-full w-full">
+                <defs>
+                  <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+                    <line x1="0" y1="0" x2="0" y2="7" stroke="var(--note)" strokeWidth="1.2" opacity="0.5" />
+                  </pattern>
+                  <clipPath id="after"><rect x={(idx / last) * 1000} y="0" width="1000" height="260" /></clipPath>
+                </defs>
+                <path d={area} fill="url(#hatch)" opacity="0.65" />
+                <path d={path} fill="none" stroke="var(--ink)" strokeWidth="2.5" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+                <path d={path} fill="none" stroke="var(--gold)" strokeWidth="5" vectorEffect="non-scaling-stroke" strokeLinejoin="round" clipPath="url(#after)" />
+              </svg>
+              <div aria-hidden className="absolute inset-y-0 w-px bg-ink" style={{ left: `${xPct}%` }} />
+              <div aria-hidden className="absolute size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-ink bg-gold" style={{ left: `${xPct}%`, top: `${yPct}%` }} />
+              <span aria-hidden className="absolute start-1 top-1 rounded bg-paper-2 px-1 text-sm text-mute">{money.format(hi)}</span>
+              <span aria-hidden className="absolute bottom-7 start-1 rounded bg-paper-2 px-1 text-sm text-mute">{money.format(lo)}</span>
+              <ul aria-hidden className="absolute inset-x-0 bottom-0 h-5 text-sm text-mute">
+                {months.map((m, k) => <li key={m.i} className={`absolute -translate-x-1/2 ${k % 2 ? "hidden sm:block" : ""}`} style={{ left: `${(m.i / last) * 100}%` }}>{m.label}</li>)}
+              </ul>
+              <input
+                type="range"
+                min={0}
+                max={last}
+                value={Math.min(idx, last)}
+                onChange={(e) => { stop(); setIdx(Number(e.target.value)); }}
+                onPointerDown={stop}
+                aria-label={`اختر يومًا لعرض سعر ${a.label}`}
+                aria-valuetext={`${fmtDay(cur.date)}: ${money.format(cur.v)} جنيه`}
+                className="absolute inset-0 h-full w-full cursor-ew-resize opacity-0"
+              />
+            </div>
+            <p className="mt-2 text-sm text-mute">الخط الذهبي هو اللي حصل من اليوم المختار لحد النهارده.</p>
+          </div>
         </div>
       </div>
     </section>

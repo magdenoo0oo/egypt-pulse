@@ -9,7 +9,7 @@ export type Crumb = { href?: string; label: string };
 export function PageHead({ crumbs, title, lead, icon, children }: { crumbs: Crumb[]; title: string; lead?: string; icon?: ReactNode; children?: ReactNode }) {
   const all = [{ href: "/", label: "الرئيسية" }, ...crumbs];
   return (
-    <header className="mx-auto max-w-page px-4 pt-8 sm:px-6">
+    <header className="mx-auto max-w-page px-4 pt-5 sm:px-6 xl:px-12">
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -37,7 +37,7 @@ export function PageHead({ crumbs, title, lead, icon, children }: { crumbs: Crum
         </div>
         {children}
       </div>
-      <div aria-hidden className="engrave mt-8 h-3 border-y border-line" />
+      <div aria-hidden className="engrave mt-5 h-3 border-y border-line" />
     </header>
   );
 }

@@ -15,7 +15,7 @@ const NAV = [
 export function Header() {
   return (
     <header className="border-b border-line bg-paper">
-      <div className="mx-auto flex max-w-page flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <div className="mx-auto flex max-w-page flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 xl:px-12">
         <Link href="/" className="inline-flex min-h-11 items-center gap-3" aria-label={`${SITE.name}، الرئيسية`}>
           <svg viewBox="0 0 40 40" width="36" height="36" aria-hidden="true" className="text-note">
             <circle cx="20" cy="20" r="18.5" fill="none" stroke="currentColor" strokeWidth="2" />

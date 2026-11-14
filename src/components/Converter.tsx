@@ -1,15 +1,19 @@
 "use client";
 import { useState } from "react";
+import { useI18n } from "@/i18n/client";
+
+const parse = (s: string, digits: string) =>
+  Number(s.replace(new RegExp(`[${digits}]`, "g"), (d) => String(digits.indexOf(d))).replace(/[٫,]/g, "."));
 
 export function Converter({ rate, short }: { rate: number; short: string }) {
+  const { t, f } = useI18n();
   const [amount, setAmount] = useState("100");
   const [toEgp, setToEgp] = useState(true);
-  const n = Number(amount.replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d))));
+  const n = parse(amount, f.digits);
   const out = Number.isFinite(n) ? (toEgp ? n * rate : n / rate) : 0;
-  const f = new Intl.NumberFormat("ar-EG", { maximumFractionDigits: 2 });
   return (
     <form className="grid gap-3" onSubmit={(e) => e.preventDefault()}>
-      <div className="flex flex-wrap gap-2" role="group" aria-label="اتجاه التحويل">
+      <div className="flex flex-wrap gap-2" role="group" aria-label={t("c.conv.dirAria")}>
         {[true, false].map((v) => (
           <button
             key={String(v)}
@@ -18,12 +22,12 @@ export function Converter({ rate, short }: { rate: number; short: string }) {
             onClick={() => setToEgp(v)}
             className="min-h-11 rounded-full border border-line px-4 aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-paper"
           >
-            {v ? `${short} إلى جنيه` : `جنيه إلى ${short}`}
+            {t(v ? "c.conv.toEgp" : "c.conv.fromEgp", { x: short })}
           </button>
         ))}
       </div>
       <label className="grid gap-1 text-sm text-mute">
-        المبلغ
+        {t("c.conv.amount")}
         <input
           inputMode="decimal"
           value={amount}
@@ -32,7 +36,7 @@ export function Converter({ rate, short }: { rate: number; short: string }) {
         />
       </label>
       <output className="font-display text-3xl font-bold" aria-live="polite">
-        {f.format(out)} <span className="font-sans text-lg font-normal text-mute">{toEgp ? "جنيه" : short}</span>
+        {f.fmtNum(out)} <span className="font-sans text-lg font-normal text-mute">{toEgp ? t("c.egp") : short}</span>
       </output>
     </form>
   );

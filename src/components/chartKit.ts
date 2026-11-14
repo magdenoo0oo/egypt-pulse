@@ -3,19 +3,12 @@ import { ColorType, CrosshairMode, type ChartOptions, type DeepPartial, type Tim
 export type Pt = { date: string; v: number };
 export type Token = "note" | "gold" | "down" | "up" | "mute" | "ink";
 
-export const num = new Intl.NumberFormat("ar-EG", { maximumFractionDigits: 2 });
-const monthDay = new Intl.DateTimeFormat("ar-EG", { timeZone: "UTC", day: "numeric", month: "short" });
-const monthYear = new Intl.DateTimeFormat("ar-EG", { timeZone: "UTC", month: "short", year: "2-digit" });
-const full = new Intl.DateTimeFormat("ar-EG", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" });
-
 /** lightweight-charts hands back strings, business-day objects or unix seconds depending on input. */
 export function toDate(t: Time): Date {
   if (typeof t === "string") return new Date(`${t}T00:00:00Z`);
   if (typeof t === "number") return new Date(t * 1000);
   return new Date(Date.UTC(t.year, t.month - 1, t.day));
 }
-export const fmtFull = (t: Time) => full.format(toDate(t));
-
 /** Resolve a CSS colour token on the element (so charts inside `.vault` pick up vault colours). */
 export function token(el: Element, name: Token | "line" | "paper"): string {
   return getComputedStyle(el).getPropertyValue(`--${name}`).trim() || "#888";
@@ -28,8 +21,14 @@ export function alpha(hex: string, a: number) {
   return `rgba(${r},${g},${b},${a})`;
 }
 
-export function baseOptions(el: Element): DeepPartial<ChartOptions> {
-  return {
+/** Number/date formatting and base chart options for one locale tag. */
+export function chartFormat(tag: string) {
+  const num = new Intl.NumberFormat(tag, { maximumFractionDigits: 2 });
+  const monthDay = new Intl.DateTimeFormat(tag, { timeZone: "UTC", day: "numeric", month: "short" });
+  const monthYear = new Intl.DateTimeFormat(tag, { timeZone: "UTC", month: "short", year: "2-digit" });
+  const full = new Intl.DateTimeFormat(tag, { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" });
+  const fmtFull = (t: Time) => full.format(toDate(t));
+  const options = (el: Element): DeepPartial<ChartOptions> => ({
     autoSize: true,
     layout: {
       background: { type: ColorType.Solid, color: "transparent" },
@@ -50,10 +49,11 @@ export function baseOptions(el: Element): DeepPartial<ChartOptions> {
       vertLine: { color: token(el, "mute"), labelBackgroundColor: token(el, "note") },
       horzLine: { color: token(el, "mute"), labelBackgroundColor: token(el, "note") },
     },
-    localization: { locale: "ar-EG", priceFormatter: (p: number) => num.format(p), timeFormatter: (t: Time) => fmtFull(t) },
+    localization: { locale: tag, priceFormatter: (p: number) => num.format(p), timeFormatter: (t: Time) => fmtFull(t) },
     handleScale: { mouseWheel: false },
     handleScroll: { mouseWheel: false, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
-  };
+  });
+  return { num, fmtFull, options };
 }
 
 /** Calls `cb` when the page theme flips (the header toggle sets `data-theme` on <html>). Returns an unsubscribe. */

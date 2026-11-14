@@ -63,14 +63,14 @@
   --color-down: var(--down);
   --color-line: var(--line);
   --color-vault: var(--vault);
-  --font-display: var(--font-reem), system-ui, sans-serif;
-  --font-sans: var(--font-plex), system-ui, sans-serif;
-  --font-serif: var(--font-amiri), "Noto Naskh Arabic", serif;
+  --font-display: var(--font-reem), var(--font-plex-latin), "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", "Kohinoor Devanagari", "Nirmala UI", system-ui, sans-serif;
+  --font-sans: var(--font-plex), var(--font-plex-latin), "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", "Kohinoor Devanagari", "Nirmala UI", system-ui, sans-serif;
+  --font-serif: var(--font-amiri), "Noto Naskh Arabic", Georgia, "Songti SC", "Noto Serif CJK SC", serif;
   --container-page: 120rem;
 }
 
 html { background: var(--paper); color: var(--ink); scroll-behavior: smooth; }
-body { font-family: var(--font-sans); line-height: 1.7; font-feature-settings: "tnum"; }
+body { font-family: var(--font-sans); line-height: 1.7; font-feature-settings: "tnum"; overflow-wrap: break-word; hyphens: auto; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible {

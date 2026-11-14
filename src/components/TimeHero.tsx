@@ -1,23 +1,17 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useI18n } from "@/i18n/client";
 
 export type Pt = { date: string; v: number };
 export type Asset = { key: string; label: string; unit: string; href: string; data: Pt[] };
 
-const DIGITS = "٠١٢٣٤٥٦٧٨٩";
-const money = new Intl.NumberFormat("ar-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const day = new Intl.DateTimeFormat("ar-EG", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" });
-const month = new Intl.DateTimeFormat("ar-EG", { timeZone: "UTC", month: "short" });
-const fmtDay = (iso: string) => day.format(new Date(`${iso}T00:00:00Z`));
-const sign = (n: number) => `؜${n > 0 ? "+" : n < 0 ? "−" : ""}${money.format(Math.abs(n))}`;
-
 /** One rolling digit: a column of 0-9 that slides, like a split-flap board. */
-function Drum({ d }: { d: number }) {
+function Drum({ d, digits }: { d: number; digits: string }) {
   return (
     <span className="flap" aria-hidden>
       <span className="drum" style={{ transform: `translateY(-${d * 10}%)` }}>
-        {DIGITS.split("").map((c) => <span key={c} className="flap-d">{c}</span>)}
+        {Array.from(digits).map((c) => <span key={c} className="flap-d">{c}</span>)}
       </span>
     </span>
   );
@@ -28,6 +22,10 @@ function Drum({ d }: { d: number }) {
  * today, then the visitor drags (or uses the arrow keys on the hidden range input) to read any day.
  */
 export function TimeHero({ assets }: { assets: Asset[] }) {
+  const { t, f } = useI18n();
+  const DIGITS = f.digits;
+  const money = useMemo(() => new Intl.NumberFormat(f.tag, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), [f.tag]);
+  const fmtDay = (iso: string) => f.fmtDate(iso);
   const [ai, setAi] = useState(0);
   const a = assets[ai];
   const last = a.data.length - 1;
@@ -85,10 +83,10 @@ export function TimeHero({ assets }: { assets: Asset[] }) {
     let m = "";
     a.data.forEach((d, i) => {
       const k = d.date.slice(0, 7);
-      if (k !== m) { m = k; if (i > 8 && i < last - 8) out.push({ i, label: month.format(new Date(`${d.date}T00:00:00Z`)) }); }
+      if (k !== m) { m = k; if (i > 8 && i < last - 8) out.push({ i, label: f.fmtMonth(d.date) }); }
     });
     return out;
-  }, [a, last]);
+  }, [a, last, f]);
 
   const warm = diff > 0 ? "text-down" : diff < 0 ? "text-up" : "text-mute";
 
@@ -99,8 +97,8 @@ export function TimeHero({ assets }: { assets: Asset[] }) {
       <div aria-hidden className="engrave h-3 border-b-2 border-ink" />
       <div className="px-5 pb-5 pt-5 sm:px-8 xl:px-10">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 id="hero-h" className="font-display text-xl font-bold sm:text-2xl">أسعار اليوم بالجنيه المصري</h1>
-          <div className="flex flex-wrap gap-1" role="group" aria-label="اختر الأصل">
+          <h1 id="hero-h" className="font-display text-xl font-bold sm:text-2xl">{t("c.hero.title")}</h1>
+          <div className="flex flex-wrap gap-1" role="group" aria-label={t("c.hero.pickAsset")}>
             {assets.map((x, i) => (
               <button
                 key={x.key}
@@ -119,18 +117,18 @@ export function TimeHero({ assets }: { assets: Asset[] }) {
           <div className="flex min-w-0 flex-col justify-between gap-5 [container-type:inline-size]">
             <div>
               <p className="text-lg text-mute" aria-live="off">
-                {atToday ? "النهارده" : "في"} <span className="font-semibold text-ink">{fmtDay(cur.date)}</span>
+                {t(atToday ? "c.hero.today" : "c.hero.on")} <span className="font-semibold text-ink">{fmtDay(cur.date)}</span>
               </p>
               <p
                 dir="ltr"
                 className="mt-2 flex items-center gap-[0.12em] font-display font-bold leading-none"
                 style={{ fontSize: `min(9rem, ${(100 / em).toFixed(2)}cqw)` }}
                 role="text"
-                aria-label={`${a.label}: ${money.format(cur.v)} جنيه`}
+                aria-label={`${a.label}: ${money.format(cur.v)} ${t("c.egp")}`}
               >
                 {chars.map((c, i) => {
                   const d = DIGITS.indexOf(c);
-                  return d >= 0 ? <Drum key={`${chars.length}-${i}`} d={d} /> : <span key={`${chars.length}-${i}`} aria-hidden className="px-[0.02em] text-[0.6em] text-mute">{c}</span>;
+                  return d >= 0 ? <Drum key={`${chars.length}-${i}`} d={d} digits={DIGITS} /> : <span key={`${chars.length}-${i}`} aria-hidden className="px-[0.02em] text-[0.6em] text-mute">{c}</span>;
                 })}
               </p>
               <p className="mt-2 text-mute">{a.unit}</p>
@@ -138,17 +136,17 @@ export function TimeHero({ assets }: { assets: Asset[] }) {
             <div className="text-xl leading-9" aria-live="polite">
               {atToday ? (
                 <p>
-                  <span className={`font-semibold ${warm}`}>{sign(diff)} جنيه ({sign(pct)}٪)</span> عن آخر يوم قبله.
-                  <span className="block text-base text-mute">اسحب على الخط وشوف أي يوم في السنة.</span>
+                  <span className={`font-semibold ${warm}`}>{f.sign(diff)}{money.format(Math.abs(diff))} {t("c.egp")} ({f.fmtPct(pct)})</span> {t("c.hero.vsPrev")}
+                  <span className="block text-base text-mute">{t("c.hero.dragHint")}</span>
                 </p>
               ) : (
                 <p>
-                  من ساعتها {diff > 0 ? "زاد" : "قلّ"} <span className={`font-semibold ${warm}`}>{money.format(Math.abs(diff))} جنيه</span> ({sign(pct)}٪).
-                  <button type="button" onClick={() => { stop(); setIdx(last); }} className="mt-1 block min-h-11 text-base text-note underline">ارجع للنهارده</button>
+                  {t(diff > 0 ? "c.hero.sinceUp" : "c.hero.sinceDown")} <span className={`font-semibold ${warm}`}>{money.format(Math.abs(diff))} {t("c.egp")}</span> ({f.fmtPct(pct)}).
+                  <button type="button" onClick={() => { stop(); setIdx(last); }} className="mt-1 block min-h-11 text-base text-note underline">{t("c.hero.back")}</button>
                 </p>
               )}
             </div>
-            <Link href={a.href} className="inline-flex min-h-11 w-fit items-center text-base text-note underline">تحليل {a.label} الكامل</Link>
+            <Link href={a.href} className="inline-flex min-h-11 w-fit items-center text-base text-note underline">{t("c.hero.full", { name: a.label })}</Link>
           </div>
 
           <div className="flex min-w-0 flex-col">
@@ -169,7 +167,7 @@ export function TimeHero({ assets }: { assets: Asset[] }) {
               <span aria-hidden className="absolute start-1 top-1 rounded bg-paper-2 px-1 text-sm text-mute">{money.format(hi)}</span>
               <span aria-hidden className="absolute bottom-7 start-1 rounded bg-paper-2 px-1 text-sm text-mute">{money.format(lo)}</span>
               <ul aria-hidden className="absolute inset-x-0 bottom-0 h-5 text-sm text-mute">
-                {months.map((m, k) => <li key={m.i} className={`absolute -translate-x-1/2 ${k % 2 ? "hidden sm:block" : ""}`} style={{ left: `${(m.i / last) * 100}%` }}>{m.label}</li>)}
+                {months.map((m, k) => <li key={m.i} className={`absolute -translate-x-1/2 whitespace-nowrap ${k % 2 ? "hidden" : ""}`} style={{ left: `${(m.i / last) * 100}%` }}>{m.label}</li>)}
               </ul>
               <input
                 type="range"
@@ -178,12 +176,12 @@ export function TimeHero({ assets }: { assets: Asset[] }) {
                 value={Math.min(idx, last)}
                 onChange={(e) => { stop(); setIdx(Number(e.target.value)); }}
                 onPointerDown={stop}
-                aria-label={`اختر يومًا لعرض سعر ${a.label}`}
-                aria-valuetext={`${fmtDay(cur.date)}: ${money.format(cur.v)} جنيه`}
+                aria-label={t("c.hero.pickDay", { name: a.label })}
+                aria-valuetext={`${fmtDay(cur.date)}: ${money.format(cur.v)} ${t("c.egp")}`}
                 className="absolute inset-0 h-full w-full cursor-ew-resize opacity-0"
               />
             </div>
-            <p className="mt-2 text-sm text-mute">الخط الذهبي هو اللي حصل من اليوم المختار لحد النهارده.</p>
+            <p className="mt-2 text-sm text-mute">{t("c.hero.goldNote")}</p>
           </div>
         </div>
       </div>

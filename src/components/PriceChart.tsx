@@ -1,14 +1,10 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AreaSeries, createChart, type IChartApi, type ISeriesApi, type Time } from "lightweight-charts";
-import { alpha, baseOptions, fmtFull, num, onThemeChange, token, type Pt, type Token } from "./chartKit";
+import { useI18n } from "@/i18n/client";
+import { alpha, chartFormat, onThemeChange, token, type Pt, type Token } from "./chartKit";
 
-const RANGES = [
-  [30, "شهر"],
-  [90, "٣ شهور"],
-  [180, "٦ شهور"],
-  [365, "سنة"],
-] as const;
+const RANGES = [30, 90, 180, 365] as const;
 
 /**
  * Interactive price history (TradingView lightweight-charts).
@@ -16,8 +12,10 @@ const RANGES = [
  * and the page still reads without JavaScript.
  */
 export function PriceChart({
-  data, label, children, height = 360, tone = "note", unit = "جنيه",
+  data, label, children, height = 360, tone = "note", unit,
 }: { data: Pt[]; label: string; children?: ReactNode; height?: number; tone?: Token; unit?: string }) {
+  const { t, f } = useI18n();
+  const { num, fmtFull } = chartFormat(f.tag);
   const box = useRef<HTMLDivElement>(null);
   const chart = useRef<IChartApi | null>(null);
   const series = useRef<ISeriesApi<"Area"> | null>(null);
@@ -28,10 +26,11 @@ export function PriceChart({
 
   useEffect(() => {
     const el = box.current!;
-    const c = createChart(el, { ...baseOptions(el), height });
+    const o = chartFormat(f.tag).options;
+    const c = createChart(el, { ...o(el), height });
     const apply = () => {
       const col = token(el, tone);
-      c.applyOptions(baseOptions(el));
+      c.applyOptions(o(el));
       s.applyOptions({ lineColor: col, topColor: alpha(col, 0.28), bottomColor: alpha(col, 0) });
     };
     const s = c.addSeries(AreaSeries, { lineWidth: 2, priceLineVisible: true, lastValueVisible: true });
@@ -51,7 +50,7 @@ export function PriceChart({
       c.remove();
       chart.current = null;
     };
-  }, [data, height, tone]);
+  }, [data, height, tone, f.tag]);
 
   useEffect(() => {
     const c = chart.current;
@@ -69,14 +68,14 @@ export function PriceChart({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div aria-live="off">
           <p className="font-display text-3xl font-bold leading-none">
-            {num.format(shown.v)} <span className="font-sans text-sm font-normal text-mute">{unit}</span>
+            {num.format(shown.v)} <span className="font-sans text-sm font-normal text-mute">{unit ?? t("c.egp")}</span>
           </p>
           <p className="mt-1 text-sm text-mute">
-            {fmtFull(shown.t)} · {"\u061C"}{pct > 0 ? "+" : pct < 0 ? "−" : ""}{num.format(Math.abs(pct))}٪ عن بداية الفترة
+            {fmtFull(shown.t)} · {f.sign(pct)}{num.format(Math.abs(pct))}% {t("c.sinceStart")}
           </p>
         </div>
-        <div className="flex gap-1" role="group" aria-label="الفترة الزمنية">
-          {RANGES.filter(([d]) => data.length >= d * 0.9).map(([d, l]) => (
+        <div className="flex gap-1" role="group" aria-label={t("c.rangeAria")}>
+          {RANGES.filter((d) => data.length >= d * 0.9).map((d) => (
             <button
               key={d}
               type="button"
@@ -84,7 +83,7 @@ export function PriceChart({
               onClick={() => setRange(Math.min(d, data.length))}
               className="min-h-11 rounded-md border border-line px-3 text-sm hover:bg-paper-3 aria-pressed:border-note aria-pressed:bg-note aria-pressed:text-paper"
             >
-              {l}
+              {t(`c.range.${d}` as "c.range.30")}
             </button>
           ))}
         </div>

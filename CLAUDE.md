@@ -41,6 +41,15 @@ Concept C, "banknote x terminal" (owner chose it after seeing three options): th
 ## Status
 Done and verified: lint and build pass; CI green; daily workflow ran successfully and made its own commit (`data: 2026-11-14`); all routes 200, unknown currencies 404 on first hit; checked visually at 1280px and 390px.
 
+## i18n (11 locales)
+- Locales: ar (default, unprefixed URLs), en, fr, es, de, tr, ru, zh, hi, pt, it (prefixed: `/en/...`). Config in `src/i18n/config.ts`; all routes live under `src/app/[locale]/`.
+- `src/proxy.ts` rewrites unprefixed paths to `/ar/...`, redirects a visible `/ar/...` back, and 404s unknown ids. The layout reads the locale with `next/root-params`; Server Components call `await getI18n()` (`src/i18n/server.ts`) for `{ t, f, href, locale }`; Client Components use `useI18n()` and only receive the `c.*` slice of the dictionary.
+- Dictionaries: `src/i18n/messages/<locale>.ts`, typed against the Arabic source `ar.ts` (add a key there first, then every locale). `npx tsx scripts/check-i18n.ts` verifies keys and `{placeholders}` for all locales; run it after any copy change.
+- Numbers, dates, percents, currency names come from `makeFormat(locale)` (`src/i18n/format.ts`, Intl-based). Never hardcode digits or separators.
+- Long-form content (guides, glossary, per-currency notes, methodology) exists in Arabic and English only (`src/content/`, `src/content/en/`); other locales read English and show a notice. Translating it further is a content job, not a code one.
+- Link with `href("/path")` (adds the locale prefix); never write `/currency/usd` by hand in a page. Chart/converter strings live in the `c.*` keys.
+- Layout is logical-property based so RTL/LTR flips with `dir`; check any new physical `left/right/ml/pl` use.
+
 ## Gotchas (do not rediscover)
 1. This Next.js version differs from training data. Read `node_modules/next/dist/docs/` before coding (see AGENTS.md). `params` is a Promise; use the global `PageProps<"/route">` and `LayoutProps` types (generated at build, so plain `tsc` before the first build shows false errors).
 2. `export const dynamicParams` is not allowed with `cacheComponents`. Unlisted dynamic paths return 200 on the first hit, which is why `src/proxy.ts` exists.
@@ -52,7 +61,7 @@ Done and verified: lint and build pass; CI green; daily workflow ran successfull
 
 ## Deviations from the original plan
 - No Postgres/Drizzle yet (data lives in git CSV; put a DB behind `src/lib/rates.ts` without changing the UI).
-- Arabic only, no `next-intl` yet.
+- i18n is hand-rolled (no `next-intl`): see "i18n" below.
 
 ## Pending (ask the owner, don't assume)
 1. Deployment: Vercel or Cloudflare. The site is NOT deployed yet. After deploy, each daily data commit should redeploy it.

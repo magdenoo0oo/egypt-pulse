@@ -1,5 +1,6 @@
 "use client";
 import { useSyncExternalStore } from "react";
+import { useI18n } from "@/i18n/client";
 
 const subscribe = (cb: () => void) => {
   const mo = new MutationObserver(cb);
@@ -10,8 +11,9 @@ const snapshot = () => document.documentElement.dataset.theme === "dark";
 
 /** Icon button. Light by default; dark is stored in localStorage and applied before paint by the layout's inline script. */
 export function ThemeToggle() {
+  const { t } = useI18n();
   const dark = useSyncExternalStore(subscribe, snapshot, () => false);
-  const label = dark ? "التبديل إلى الوضع الفاتح" : "التبديل إلى الوضع الداكن";
+  const label = t(dark ? "c.theme.toLight" : "c.theme.toDark");
   return (
     <button
       type="button"

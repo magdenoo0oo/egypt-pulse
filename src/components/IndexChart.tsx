@@ -1,19 +1,23 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { LineSeries, createChart, type Time } from "lightweight-charts";
-import { baseOptions, fmtFull, num, onThemeChange, token, type Pt, type Token } from "./chartKit";
+import { useI18n } from "@/i18n/client";
+import { chartFormat, onThemeChange, token, type Pt, type Token } from "./chartKit";
 
 export type Line = { key: string; name: string; tone: Token; data: Pt[] };
 
 /** Several things rebased to 100 on one chart. Hover reads every line at that day. */
 export function IndexChart({ lines, label, height = 380 }: { lines: Line[]; label: string; height?: number }) {
+  const { t, f } = useI18n();
+  const { num, fmtFull } = chartFormat(f.tag);
   const box = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
   const [hover, setHover] = useState<{ t: Time; vals: Record<string, number> } | null>(null);
 
   useEffect(() => {
     const el = box.current!;
-    const c = createChart(el, { ...baseOptions(el), height });
+    const o = chartFormat(f.tag).options;
+    const c = createChart(el, { ...o(el), height });
     const made = lines.map((l) => {
       const s = c.addSeries(LineSeries, { color: token(el, l.tone), lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
       s.setData(l.data.map((d) => ({ time: d.date as Time, value: d.v })));
@@ -30,13 +34,13 @@ export function IndexChart({ lines, label, height = 380 }: { lines: Line[]; labe
       setHover({ t: p.time, vals });
     });
     const apply = () => {
-      c.applyOptions(baseOptions(el));
+      c.applyOptions(o(el));
       lines.forEach((l, i) => made[i][1].applyOptions({ color: token(el, l.tone) }));
     };
     const off = onThemeChange(apply);
     const raf = requestAnimationFrame(() => setReady(true));
     return () => { cancelAnimationFrame(raf); off(); c.remove(); };
-  }, [lines, height]);
+  }, [lines, height, f.tag]);
 
   return (
     <div>
@@ -52,7 +56,7 @@ export function IndexChart({ lines, label, height = 380 }: { lines: Line[]; labe
           );
         })}
       </ul>
-      <p className="mt-1 text-sm text-mute">{hover ? fmtFull(hover.t) : "القيمة ١٠٠ = بداية الفترة. مرّر على الرسم لقراءة اليوم."}</p>
+      <p className="mt-1 text-sm text-mute">{hover ? fmtFull(hover.t) : t("c.index.hint")}</p>
       <div dir="ltr" className="mt-3" role="img" aria-label={label}>
         <div ref={box} style={{ height }} className={ready ? "" : "opacity-0"} />
       </div>

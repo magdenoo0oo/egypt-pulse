@@ -1,6 +1,7 @@
-import { fmt, fmtDate } from "@/lib/format";
+import { getI18n } from "@/i18n/server";
 
-export function Chart({ data, label }: { data: { date: string; v: number }[]; label: string }) {
+export async function Chart({ data, label }: { data: { date: string; v: number }[]; label: string }) {
+  const { f } = await getI18n();
   const W = 800, H = 320, P = { l: 12, r: 84, t: 16, b: 34 };
   const vs = data.map((d) => d.v);
   const min = Math.min(...vs), max = Math.max(...vs), span = max - min || 1;
@@ -17,15 +18,15 @@ export function Chart({ data, label }: { data: { date: string; v: number }[]; la
         return (
           <g key={k}>
             <line x1={P.l} x2={W - P.r} y1={y(n)} y2={y(n)} stroke="var(--line)" />
-            <text x={W - P.r + 10} y={y(n) + 4} fontSize="17" fill="var(--mute)">{fmt(n)}</text>
+            <text x={W - P.r + 10} y={y(n) + 4} fontSize="17" fill="var(--mute)">{f.fmt(n)}</text>
           </g>
         );
       })}
       <path d={area} fill="var(--note)" opacity="0.1" />
       <path d={line} fill="none" stroke="var(--note)" strokeWidth="2.2" strokeLinejoin="round" />
       <circle cx={x(last)} cy={y(data[last].v)} r="4.5" fill="var(--note)" />
-      <text x={P.l} y={H - 9} fontSize="17" fill="var(--mute)">{fmtDate(data[0].date, "short")}</text>
-      <text x={W - P.r} y={H - 9} fontSize="17" fill="var(--mute)" textAnchor="end">{fmtDate(data[last].date, "short")}</text>
+      <text x={P.l} y={H - 9} fontSize="17" fill="var(--mute)">{f.fmtDate(data[0].date, "short")}</text>
+      <text x={W - P.r} y={H - 9} fontSize="17" fill="var(--mute)" textAnchor="end">{f.fmtDate(data[last].date, "short")}</text>
     </svg></div>
   );
 }

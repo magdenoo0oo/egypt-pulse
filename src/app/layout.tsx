@@ -1,21 +1,14 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans_Arabic, Reem_Kufi } from "next/font/google";
-import Link from "next/link";
+import { Amiri, IBM_Plex_Sans_Arabic, Reem_Kufi } from "next/font/google";
 import { SITE } from "@/lib/currencies";
 import "./globals.css";
-import { getMeta } from "@/lib/rates";
-import { fmtDate } from "@/lib/format";
-
-async function FreshnessNote() {
-  const m = await getMeta();
-  return (
-    <p className="mt-2">
-      آخر فحص للبيانات: {fmtDate(m.checkedAt)}. آخر يوم متاح: {fmtDate(m.latestDate)}.
-    </p>
-  );
-}
+import { getRows } from "@/lib/rates";
+import { Footer } from "@/components/Footer";
+import { Header } from "@/components/Header";
+import { Ticker } from "@/components/Ticker";
 
 const reem = Reem_Kufi({ variable: "--font-reem", subsets: ["arabic", "latin"], weight: ["500", "700"] });
+const amiri = Amiri({ variable: "--font-amiri", subsets: ["arabic", "latin"], weight: ["400", "700"] });
 const plex = IBM_Plex_Sans_Arabic({
   variable: "--font-plex",
   subsets: ["arabic", "latin"],
@@ -28,33 +21,15 @@ export const metadata: Metadata = {
   description: "أسعار العملات والذهب مقابل الجنيه المصري، بتاريخ كامل وAPI مفتوح، بتتحدّث كل يوم.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const rows = await getRows();
   return (
-    <html lang="ar" dir="rtl" className={`${reem.variable} ${plex.variable} antialiased`}>
+    <html lang="ar" dir="rtl" className={`${reem.variable} ${plex.variable} ${amiri.variable} antialiased`}>
       <body className="min-h-screen">
-        <header className="mx-auto flex max-w-5xl flex-col gap-1 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-5">
-          <Link href="/" className="font-display text-2xl font-bold tracking-tight">
-            تسعيرة
-          </Link>
-          <nav aria-label="التنقل الرئيسي" className="flex flex-wrap gap-x-5 text-sm">
-            {[["/currencies", "العملات"], ["/gold", "الذهب"], ["/silver", "الفضة"], ["/convert", "المحوّل"], ["/movers", "الحركة"], ["/developers", "للمطوّرين"]].map(([h, l]) => (
-              <Link key={h} href={h} className="inline-flex min-h-11 items-center hover:underline">{l}</Link>
-            ))}
-          </nav>
-        </header>
+        <Ticker rows={rows} />
+        <Header />
         {children}
-        <footer className="mx-auto mt-24 max-w-5xl px-4 pb-10 text-sm text-mute">
-          <div className="border-t border-line pt-6">
-            <p className="max-w-[60ch]">
-              الأسعار مرجعية (mid-market) مأخوذة من السوق العالمي، مش أسعار البنوك أو الصاغة. الفرق في السوق
-              المحلي ممكن يبقى كبير، وسعر الذهب بيزيد عليه مصنعية.
-            </p>
-            <FreshnessNote />
-            <p className="mt-3">
-              <Link href="/methodology" className="underline">المنهجية والمصادر</Link>
-            </p>
-          </div>
-        </footer>
+        <Footer />
       </body>
     </html>
   );

@@ -1,13 +1,21 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { Bullion } from "@/components/Bullion";
 import { Chart } from "@/components/Chart";
+import { DayStrip } from "@/components/DayStrip";
+import { PageHead } from "@/components/PageHead";
+import { Panel } from "@/components/Panel";
 import { PeriodTable } from "@/components/PeriodTable";
-import { change, getRows } from "@/lib/rates";
-import { fmt, fmtDate, fmtInt, fmtSigned } from "@/lib/format";
+import { PriceChart } from "@/components/PriceChart";
+import { RangeBar } from "@/components/RangeBar";
+import { tone } from "@/components/RateList";
+import { dailyChanges } from "@/lib/insights";
+import { change, getRows, range } from "@/lib/rates";
+import { fmt, fmtDate, fmtInt, fmtPct, fmtSigned } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "سعر الفضة اليوم في مصر بالجنيه",
-  description: "سعر جرام الفضة عيار ٩٩٩ و٩٢٥ و٨٠٠ وسعر الكيلو بالجنيه المصري، محسوب من السعر العالمي، مع رسم بياني لسنة.",
+  description: "سعر جرام الفضة عيار ٩٩٩ و٩٢٥ و٨٠٠ وسعر الكيلو بالجنيه المصري، محسوب من السعر العالمي، مع رسم تفاعلي لسنة.",
   alternates: { canonical: "/silver" },
 };
 
@@ -17,32 +25,49 @@ export default async function Silver() {
   const rows = await getRows();
   const last = rows.at(-1)!;
   const d1 = change(rows, "silver");
+  const r = range(rows, "silver", 365);
+  const hist = rows.map((x) => ({ date: x.date, v: x.silver }));
   return (
-    <main className="mx-auto max-w-5xl px-4">
-      <p className="text-mute">{fmtDate(last.date)}</p>
-      <h1 className="mt-1 font-display text-4xl font-bold">سعر الفضة اليوم</h1>
-      <p className="mt-4 font-display text-7xl font-bold leading-none">{fmt(last.silver)}</p>
-      <p className="mt-3 text-mute">جنيه لجرام الفضة الصافية، {fmtSigned(d1.abs)} عن اليوم السابق. بالسعر العالمي من غير مصنعية.</p>
+    <main>
+      <PageHead
+        crumbs={[{ label: "الفضة" }]}
+        title="سعر الفضة اليوم"
+        lead={`بتاريخ ${fmtDate(last.date)}. محسوب من السعر العالمي لأوقية الفضة، من غير مصنعية أو هامش.`}
+        icon={<Bullion tone="silver" className="hidden w-28 text-ink sm:block" />}
+      >
+        <div className="text-end">
+          <p className="font-display text-7xl font-bold leading-none">{fmt(last.silver)}</p>
+          <p className="mt-2 text-lg"><span className={tone(d1.abs)}>{fmtSigned(d1.abs)} ({fmtPct(d1.pct)})</span> <span className="text-mute">· جنيه لجرام ٩٩٩</span></p>
+        </div>
+      </PageHead>
 
-      <dl className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-3">
-        {PURITY.map(([name, f]) => (
-          <div key={name} className="bg-paper p-5">
-            <dt className="text-mute">{name}</dt>
-            <dd className="mt-1 font-display text-3xl font-bold">{fmt(last.silver * f)}</dd>
-            <dd className="text-sm text-mute">للكيلو: {fmtInt(last.silver * f * 1000)} جنيه</dd>
-          </div>
-        ))}
-      </dl>
+      <div className="mx-auto mt-8 max-w-page px-4 sm:px-6">
+        <ul className="grid gap-3 sm:grid-cols-3">
+          {PURITY.map(([name, f]) => (
+            <li key={name} className="rounded-[10px] border border-line bg-paper-2 p-5">
+              <p className="text-mute">{name}</p>
+              <p className="mt-1 font-display text-4xl font-bold">{fmt(last.silver * f)}</p>
+              <p className="text-sm text-mute">جنيه للجرام · الكيلو {fmtInt(last.silver * f * 1000)} جنيه</p>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-      <section className="mt-12" aria-labelledby="hist">
-        <h2 id="hist" className="mb-2 text-xl font-semibold">آخر سنة</h2>
-        <Chart data={rows.map((r) => ({ date: r.date, v: r.silver }))} label="تطور سعر جرام الفضة بالجنيه خلال آخر سنة" />
-      </section>
-      <section className="mt-10" aria-labelledby="periods">
-        <h2 id="periods" className="mb-2 text-xl font-semibold">الأداء حسب الفترة</h2>
-        <PeriodTable rows={rows} k="silver" caption="تغيّر وأدنى وأعلى سعر جرام الفضة" />
-      </section>
-      <p className="mt-10 text-mute">كمان: <Link className="text-note underline" href="/gold">سعر الذهب</Link> و<Link className="text-note underline" href="/movers">الحركة</Link>.</p>
+      <div className="mx-auto mt-4 grid max-w-page gap-4 px-4 sm:px-6 lg:grid-cols-[2fr_1fr]">
+        <Panel vault title="تاريخ السعر" id="h">
+          <PriceChart data={hist} tone="mute" label="تطور سعر جرام الفضة بالجنيه">
+            <Chart data={hist.slice(-90)} label="تطور سعر جرام الفضة آخر ٩٠ يوم" />
+          </PriceChart>
+        </Panel>
+        <div className="grid min-w-0 content-start gap-4">
+          <Panel title="مكانه في السنة" id="p"><RangeBar min={r.min} max={r.max} value={last.silver} lo={fmt(r.min)} hi={fmt(r.max)} label="موقع الفضة في نطاق سنة" /></Panel>
+          <Panel title="الأداء" id="pp"><PeriodTable rows={rows} k="silver" caption="تغيّر وأدنى وأعلى سعر جرام الفضة" /></Panel>
+        </div>
+      </div>
+      <div className="mx-auto mt-4 max-w-page px-4 sm:px-6">
+        <Panel title="حركة كل يوم" id="d"><DayStrip days={dailyChanges(rows, "silver")} label="حركة الفضة اليومية" /></Panel>
+        <p className="mt-8">كمان: <Link className="text-note underline" href="/gold">سعر الذهب</Link> و<Link className="text-note underline" href="/movers">ترتيب الحركة</Link>.</p>
+      </div>
     </main>
   );
 }

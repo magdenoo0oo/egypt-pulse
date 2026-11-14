@@ -1,89 +1,137 @@
 import Link from "next/link";
-import { Guilloche } from "@/components/Guilloche";
-import { RateList, tone } from "@/components/RateList";
-import { CODES, change, getRows, karats, range, type Code } from "@/lib/rates";
-import { fmt, fmtDate, fmtInt, fmtPct, fmtSigned } from "@/lib/format";
+import { Bullion } from "@/components/Bullion";
+import { Faq } from "@/components/Faq";
+import { Heatmap } from "@/components/Heatmap";
+import { IndexChart } from "@/components/IndexChart";
+import { MultiConverter } from "@/components/MultiConverter";
+import { NoteHero } from "@/components/NoteHero";
+import { Panel } from "@/components/Panel";
+import { tone } from "@/components/RateList";
+import { Section } from "@/components/Section";
+import { GUIDES } from "@/content/guides";
+import { indexed, marketReport, movers } from "@/lib/insights";
+import { CODES, CURRENCIES, change, getRows, goldPrice, unitOf } from "@/lib/rates";
+import { fmt, fmtInt, fmtPct } from "@/lib/format";
+
+const FAQ = [
+  { q: "هل الأسعار دي هي اللي هتشتري بيها من البنك؟", a: "لا. دي أسعار مرجعية (mid-market) من السوق العالمي. البنوك ومكاتب الصرافة بتبيع بسعر وتشتري بسعر، والفرق بينهم بيتغيّر من مكان لمكان." },
+  { q: "كل قد إيه بتتحدّث الأسعار؟", a: "مرة كل يوم. المصدر أحيانًا بيتأخر يوم، وفي الحالة دي بنسجّل آخر يوم متاح ونوضّح تاريخه في الصفحة." },
+  { q: "إزاي بيتحسب سعر الذهب؟", a: "من سعر أوقية الذهب العالمية بالدولار × سعر الدولار بالجنيه ÷ ٣١٫١ جرام. عيار ٢١ هو ٢١ ÷ ٢٤ من عيار ٢٤. من غير مصنعية أو دمغة أو هامش صايغ." },
+  { q: "ينفع أستخدم الداتا في تطبيقي؟", a: "أيوه. فيه API مفتوح بدون مفتاح ولا تسجيل، والتفاصيل في صفحة المطوّرين." },
+];
 
 export default async function Home() {
   const rows = await getRows();
   const last = rows.at(-1)!;
-  const usd = change(rows, "usd");
-  const usd30 = range(rows, "usd");
-  const k = karats(last.gold24);
-  const others: Code[] = ["eur", "gbp", "sar", "aed", "kwd", "qar"];
+  const mv = movers(rows, 30);
+  const options = [
+    { code: "egp", name: "الجنيه المصري", perOne: 1 },
+    ...CODES.map((c) => ({ code: c, name: CURRENCIES[c].name, perOne: last[c] / unitOf(c) })),
+  ];
+  const lines = [
+    { key: "usd", name: "الدولار", tone: "note" as const, data: indexed(rows, "usd") },
+    { key: "eur", name: "اليورو", tone: "down" as const, data: indexed(rows, "eur") },
+    { key: "sar", name: "الريال السعودي", tone: "ink" as const, data: indexed(rows, "sar") },
+    { key: "gold24", name: "الذهب عيار ٢٤", tone: "gold" as const, data: indexed(rows, "gold24") },
+    { key: "silver", name: "الفضة", tone: "mute" as const, data: indexed(rows, "silver") },
+  ];
+  const report = marketReport(rows);
+  const g21 = goldPrice(last.gold24, "21");
+  const gch = change(rows, "gold24", 30);
 
   return (
-    <main className="mx-auto max-w-5xl px-4">
-      <section className="relative overflow-hidden rounded-[28px] border border-line bg-paper-2 px-6 py-12 sm:px-12 sm:py-16">
-        <Guilloche />
-        <div className="relative">
-          <p className="text-mute">الدولار الأمريكي مقابل الجنيه · {fmtDate(last.date)}</p>
-          <h1 className="mt-2 font-display text-[clamp(4.5rem,18vw,10rem)] font-bold leading-none tracking-tight">
-            {fmt(last.usd)}
-          </h1>
-          <p className="mt-4 text-lg">
-            <span className={tone(usd.abs)}>
-              {fmtSigned(usd.abs)} ({fmtPct(usd.pct)})
-            </span>{" "}
-            عن اليوم السابق
-          </p>
-          <p className="mt-1 text-sm text-mute">
-            في آخر ٣٠ يوم: من {fmt(usd30.min)} إلى {fmt(usd30.max)}
-          </p>
-          <Link
-            href="/currency/usd"
-            className="mt-8 inline-flex min-h-11 items-center rounded-full bg-ink px-6 text-paper hover:opacity-90"
-          >
-            شوف التاريخ والمحوّل
-          </Link>
+    <main>
+      <div className="mx-auto mt-8 grid max-w-page gap-4 px-4 sm:px-6 lg:grid-cols-[2fr_1fr]">
+        <NoteHero rows={rows} />
+        <div className="grid gap-4">
+          <Panel vault title="الذهب" id="home-gold" aside="جرام عيار ٢١">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="font-display text-6xl font-bold leading-none text-gold">{fmtInt(g21)}</p>
+                <p className={`mt-2 ${tone(gch.pct)}`}>{fmtPct(gch.pct)} آخر ٣٠ يوم</p>
+              </div>
+              <Bullion className="w-32 text-ink" />
+            </div>
+            <Link href="/gold" className="mt-5 inline-flex min-h-11 items-center text-note underline">كل العيارات والحاسبة</Link>
+          </Panel>
+          <Panel title="الأعلى والأدنى" id="home-mv" aside="٣٠ يوم">
+            <ul className="divide-y divide-line">
+              {[...mv.slice(0, 3), ...mv.slice(-2)].map((m) => (
+                <li key={m.key}>
+                  <Link href={m.href} className="flex min-h-11 items-center justify-between hover:bg-paper-3">
+                    <span>{m.name}</span>
+                    <span className={tone(m.pct)}>{fmtPct(m.pct)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Link href="/movers" className="mt-3 inline-flex min-h-11 items-center text-note underline">الترتيب الكامل</Link>
+          </Panel>
         </div>
-      </section>
+      </div>
 
-      <section className="mt-16" aria-labelledby="fx">
-        <h2 id="fx" className="font-display text-2xl font-bold">باقي العملات</h2>
-        <div className="mt-4"><RateList rows={rows} codes={others} /></div>
-        <Link href="/currencies" className="mt-4 inline-flex min-h-11 items-center text-note underline">كل العملات ({CODES.length})</Link>
-      </section>
+      <Section
+        vault
+        id="map"
+        title="خريطة السوق"
+        lead="كل العملات والمعادن في شاشة واحدة، ملوّنة بحركتها آخر ٣٠ يوم. الدافي يعني السعر زاد (الجنيه بيشتري أقل)، والأخضر يعني نزل."
+      >
+        <Heatmap rows={rows} />
+      </Section>
 
-      <section className="mt-16" aria-labelledby="gold">
-        <h2 id="gold" className="font-display text-2xl font-bold">الذهب</h2>
-        <p className="mt-1 text-mute">سعر الجرام بالجنيه، محسوب من السعر العالمي.</p>
-        <ul className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4">
-          {[
-            ["عيار ٢٤", k.k24, "24"],
-            ["عيار ٢١", k.k21, "21"],
-            ["عيار ١٨", k.k18, "18"],
-            ["الجنيه الذهب", k.pound, "pound"],
-          ].map(([name, v, t]) => (
-            <li key={name as string} className="bg-paper"><Link href={`/gold/${t}`} className="block h-full p-5 hover:bg-paper-2">
-              <span className="block text-mute">{name}</span>
-              <span className="mt-1 block font-display text-3xl font-bold text-gold">{fmtInt(v as number)}</span>
-            </Link></li>
-          ))}
-        </ul>
-        <p className="mt-4 flex flex-wrap gap-x-6 gap-y-1">
-          <Link href="/gold" className="inline-flex min-h-11 items-center text-note underline">حاسبة الذهب وكل العيارات</Link>
-          <Link href="/silver" className="inline-flex min-h-11 items-center text-note underline">الفضة: {fmt(last.silver)} جنيه للجرام</Link>
-        </p>
-      </section>
+      <Section id="compare" title="مين اتحرك أكتر خلال سنة" lead="كل الأصول متحوّلة لنفس نقطة البداية (١٠٠)، علشان تقارن بينهم على نفس المقياس.">
+        <Panel>
+          <IndexChart lines={lines} label="مقارنة أداء الدولار واليورو والريال والذهب والفضة مقابل الجنيه خلال سنة" />
+        </Panel>
+      </Section>
 
-      <section className="mt-16" aria-labelledby="tools">
-        <h2 id="tools" className="font-display text-2xl font-bold">أدوات</h2>
-        <ul className="mt-4 grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-3">
-          {[
-            ["/convert", "محوّل العملات", "بين أي عملتين والجنيه"],
-            ["/movers", "الحركة", "مين طلع ومين نزل خلال سنة"],
-            ["/developers", "API مفتوح", "نفس الداتا JSON بدون مفتاح"],
-          ].map(([h, t, d]) => (
-            <li key={h} className="bg-paper">
-              <Link href={h} className="block min-h-11 p-5 hover:bg-paper-2">
-                <span className="text-lg font-semibold">{t}</span>
-                <span className="block text-mute">{d}</span>
+      <Section id="report" title="تقرير السوق" lead="مكتوب أوتوماتيك من أرقام اليوم، من غير رأي ولا توقعات.">
+        <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
+          <div className="max-w-[62ch] font-serif text-xl leading-[2]">
+            {report.map((p) => <p key={p} className="mt-4 first:mt-0">{p}</p>)}
+          </div>
+          <Panel title="حوّل بسرعة" id="home-conv" vault>
+            <MultiConverter options={options} />
+          </Panel>
+        </div>
+      </Section>
+
+      <Section id="guides" title="أدلة بتفيدك قبل ما تشتري أو تحوّل" lead="شرح مبسّط للذهب والعملات بدون مصطلحات معقدة." aside={<Link href="/guides" className="inline-flex min-h-11 items-center text-note underline">كل الأدلة</Link>}>
+        <ul className="divide-y divide-line border-y border-line">
+          {GUIDES.slice(0, 4).map((g) => (
+            <li key={g.slug}>
+              <Link href={`/guides/${g.slug}`} className="grid gap-1 py-5 hover:bg-paper-2 sm:grid-cols-[1fr_auto] sm:items-baseline sm:gap-8 sm:px-3">
+                <span>
+                  <span className="block font-display text-2xl font-bold">{g.title}</span>
+                  <span className="mt-1 block max-w-[62ch] text-mute">{g.summary}</span>
+                </span>
+                <span className="text-sm text-mute">{g.minutes} دقايق قراءة</span>
               </Link>
             </li>
           ))}
         </ul>
-      </section>
+      </Section>
+
+      <Section id="api" title="الداتا دي متاحة كـ API" lead="JSON جاهز لأي تطبيق أو بوت أو شيت. من غير مفتاح ومن غير تسجيل.">
+        <div className="vault grid gap-6 rounded-[10px] border border-line p-6 sm:p-8 lg:grid-cols-[1fr_1.2fr] lg:items-center">
+          <ul className="grid gap-2">
+            <li>{CODES.length} عملة والذهب والفضة</li>
+            <li>تاريخ لمدة سنة كاملة</li>
+            <li>تحويل بين أي عملتين بطلب واحد</li>
+            <li><Link href="/developers" className="mt-2 inline-flex min-h-11 items-center text-note underline">اقرا التوثيق</Link></li>
+          </ul>
+          <pre dir="ltr" className="overflow-x-auto rounded-md border border-line bg-paper-2 p-4 text-sm leading-7">
+{`curl "/api/v1/convert?from=usd&to=egp&amount=100"
+
+{ "from": "USD", "to": "EGP",
+  "rate": ${last.usd}, "result": ${(last.usd * 100).toFixed(2)} }`}
+          </pre>
+        </div>
+      </Section>
+
+      <Section id="faq" title="أسئلة شائعة" lead={`آخر سعر للدولار عندنا ${fmt(last.usd)} جنيه.`}>
+        <div className="max-w-3xl"><Faq items={FAQ} /></div>
+      </Section>
     </main>
   );
 }

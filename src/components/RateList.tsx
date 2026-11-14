@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CurrencyMark } from "@/components/CurrencyMark";
 import { Sparkline } from "@/components/Sparkline";
 import { CURRENCIES, change, series, type Code, type Row } from "@/lib/rates";
 import { fmt, fmtPct } from "@/lib/format";
@@ -18,9 +19,12 @@ export function RateList({ rows, codes }: { rows: Row[]; codes: Code[] }) {
               href={`/currency/${c}`}
               className="grid min-h-20 grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 py-3 hover:bg-paper-2 sm:grid-cols-[1.4fr_1fr_auto_6rem] sm:px-3"
             >
-              <span className="text-lg">
-                {CURRENCIES[c].name}
-                {CURRENCIES[c].unit > 1 && <span className="ms-2 text-sm text-mute">لكل ١٠٠</span>}
+              <span className="flex items-center gap-3 text-lg">
+                <CurrencyMark iso={CURRENCIES[c].iso} size={40} />
+                <span>
+                  {CURRENCIES[c].name}
+                  {CURRENCIES[c].unit > 1 && <span className="ms-2 text-sm text-mute">لكل ١٠٠</span>}
+                </span>
               </span>
               <span className="font-display text-2xl font-bold">{fmt(last[c])}</span>
               <Sparkline values={series(rows, c, 30)} className={`hidden sm:block ${tone(ch.abs)}`} />

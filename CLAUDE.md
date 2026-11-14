@@ -21,15 +21,21 @@ CI: `.github/workflows/ci.yml` (lint + build). Daily job: `.github/workflows/dai
 - `src/lib/format.ts`: `ar-EG` formatters (Arabic-Indic digits).
 - `src/proxy.ts`: real 404 for unknown `/currency/:code`.
 - `src/components`: `Guilloche` (banknote rosette SVG, draws once, honors reduced motion), `Sparkline`, `Chart` (server SVG), `Converter` (client).
-- Pages: `/`, `/currencies`, `/currency/[code]` (18), `/gold`, `/gold/[type]` (7), `/silver`, `/convert`, `/movers`, `/methodology`, `/developers`, plus `sitemap.ts`, `robots.ts`, `not-found.tsx`.
-- `src/proxy.ts` validates `/currency/:code` and `/gold/:type`; add new dynamic sections to its `VALID` map.
+- Pages: `/`, `/currencies`, `/currency/[code]` (18), `/gold`, `/gold/[type]` (7), `/silver`, `/convert`, `/convert/[pair]` (36, `usd-to-egp` / `egp-to-usd`, see `src/lib/pairs.ts`), `/movers`, `/guides`, `/guides/[slug]` (7), `/glossary`, `/methodology`, `/developers`, plus `sitemap.ts`, `robots.ts`, `not-found.tsx`.
+- Written content lives in `src/content/` (`guides.ts`, `glossary.ts`, `notes.ts`). It is evergreen and non-advisory by design: no invented statistics, hypothetical examples are labelled. `src/lib/insights.ts` generates the daily text reports from the data only.
+- `src/proxy.ts` validates `/currency/:code`, `/gold/:type`, `/convert/:pair`, `/guides/:slug`; add new dynamic sections to its `VALID` map and `matcher`.
 - Set `NEXT_PUBLIC_SITE_URL` on Vercel once the domain is final (sitemap, robots, metadataBase use it).
 - API: `/currencies`, `/rates`, `/rates/:code?days=1..365`, `/convert?from&to&amount`, `/gold`, `/gold/:type`, `/silver` (unknown code 404, bad input 400).
 
 ## Design (decided, do not re-open the concept)
-Concept: Egyptian banknote. Tokens are CSS variables in `src/app/globals.css`, with dark mode:
-paper #e6ede4, paper-2 #d8e2d4, ink #0f241c, mute #4d6358, note #1f5c46, gold #7d5c0d, up #1f6b4a, down #a63d28, line #b9c7bb.
-A rising foreign currency uses the warning tone (the pound buys less). The one memorable element is the hero number over the rosette; keep everything else quiet. Avoid generic SaaS cards, default gradients, fade-up-on-scroll. Accessibility beats style: focus rings, 44px targets, reduced motion, contrast.
+Concept C, "banknote x terminal" (owner chose it after seeing three options): the banknote identity stays as texture and brand, the page structure is a professional market terminal.
+- Paper is the page; `.vault` (globals.css) is a dark engraved surface that re-points every colour token, so any component works on paper or inside a vault panel. Use `<Panel vault>` / `<Section vault>`.
+- Tokens: paper #e6ede4, paper-2 #d8e2d4, ink #0f241c, mute #4d6358, note #1f5c46, gold #7d5c0d, up #1f6b4a, down #a63d28, line #b9c7bb, vault #0b1f17 (dark mode swaps all of them).
+- Type: Reem Kufi (display, numbers), IBM Plex Sans Arabic (UI, tables), Amiri (long-form prose: guides, reports).
+- The one memorable element: the home hero drawn as a banknote (`NoteHero`: corner denominations, rosette, gold security thread, serial). Everything else stays quiet and structured. The ticker tape is the only constant motion (pauses on hover/focus, static under reduced motion).
+- A rising foreign price uses the warning tone (the pound buys less); heatmap, day strip and movers follow the same rule.
+- Charts: interactive price charts use `lightweight-charts` v5 (`PriceChart`, `IndexChart`, theme read from CSS vars via `chartKit.ts`); they show the server SVG `Chart` until hydrated. Everything else (sparklines, `DayStrip`, `RangeBar`, bars) is server SVG/CSS. TradingView attribution must stay in the footer and methodology page.
+- Avoid generic SaaS cards, default gradients, fade-up-on-scroll, eyebrow labels. Accessibility beats style: focus rings, 44px targets, reduced motion, contrast.
 
 ## Status
 Done and verified: lint and build pass; CI green; daily workflow ran successfully and made its own commit (`data: 2026-11-14`); all routes 200, unknown currencies 404 on first hit; checked visually at 1280px and 390px.

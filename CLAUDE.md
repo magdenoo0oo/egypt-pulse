@@ -2,7 +2,7 @@
 
 # Tas3era (تسعيرة): project report and working notes
 
-Arabic-first (RTL) dashboard and open API for the Egyptian pound: USD, EUR, SAR, GBP and gold (24k/21k/18k + gold pound), 90 days of history.
+Arabic-first (RTL) dashboard and open API for the Egyptian pound: 18 currencies, gold (24/21/18/14k, gold pound, half pound, ounce) and silver, 1 year of history.
 It is the owner's showcase as a senior full-stack developer, and its daily automated commits keep their GitHub contribution graph green. Both goals matter. Commits must come from real work (the daily data pipeline), never empty filler commits.
 
 - Repo: https://github.com/magdenoo0oo/egypt-pulse (public; rename to tas3era pending, owner does it on GitHub/Vercel), branch `main`
@@ -14,15 +14,17 @@ API: Hono (`hono/vercel`) + Zod. Data: git-tracked CSV. Fonts: Reem Kufi (displa
 CI: `.github/workflows/ci.yml` (lint + build). Daily job: `.github/workflows/daily.yml` (09:17 UTC, commits `data/`).
 
 ## Structure
-- `data/rates.csv`: `date,usd,eur,sar,gbp,gold24`. EGP per 1 unit; `gold24` is EGP per gram of 24k. Source of truth for now.
+- `data/rates.csv`: `date,<18 currency codes>,gold24,silver`. Columns come from `src/lib/currencies.ts` (single catalogue shared by app, API, collector). Values are EGP per `unit` (JPY and INR per 100); `gold24`/`silver` are EGP per gram of pure metal. Source of truth for now. One source day (2025-12-10) is missing; the methodology page says gaps can happen.
 - `data/meta.json`: `{checkedAt, latestDate, days}`, rewritten on every successful collector run. The source sometimes lags a day, so this guarantees a real change and commit daily, and the footer shows it.
-- `scripts/collect.ts`: fetches fawazahmed0/currency-api (jsdelivr, fallback currency-api.pages.dev). Gold = egp / xau / 31.1034768. Run `npx tsx scripts/collect.ts [--backfill N]`.
+- `scripts/collect.ts`: fetches fawazahmed0/currency-api (jsdelivr, fallback currency-api.pages.dev). Gold = egp / xau / 31.1034768. Run `npx tsx scripts/collect.ts [--backfill N]` (re-fetches days that are missing or incomplete).
 - `src/lib/rates.ts`: loader (`loadRows` plain; `getRows`/`getMeta` use `"use cache"` + `cacheLife("hours")`), helpers `series/change/range/karats`. This is the seam for a future database.
 - `src/lib/format.ts`: `ar-EG` formatters (Arabic-Indic digits).
 - `src/proxy.ts`: real 404 for unknown `/currency/:code`.
 - `src/components`: `Guilloche` (banknote rosette SVG, draws once, honors reduced motion), `Sparkline`, `Chart` (server SVG), `Converter` (client).
-- Pages: `/`, `/currency/[code]`, `/developers`.
-- API: `GET /api/v1/rates`, `GET /api/v1/rates/:code?days=1..365`, `GET /api/v1/gold` (unknown code 404, bad days 400).
+- Pages: `/`, `/currencies`, `/currency/[code]` (18), `/gold`, `/gold/[type]` (7), `/silver`, `/convert`, `/movers`, `/methodology`, `/developers`, plus `sitemap.ts`, `robots.ts`, `not-found.tsx`.
+- `src/proxy.ts` validates `/currency/:code` and `/gold/:type`; add new dynamic sections to its `VALID` map.
+- Set `NEXT_PUBLIC_SITE_URL` on Vercel once the domain is final (sitemap, robots, metadataBase use it).
+- API: `/currencies`, `/rates`, `/rates/:code?days=1..365`, `/convert?from&to&amount`, `/gold`, `/gold/:type`, `/silver` (unknown code 404, bad input 400).
 
 ## Design (decided, do not re-open the concept)
 Concept: Egyptian banknote. Tokens are CSS variables in `src/app/globals.css`, with dark mode:
@@ -56,3 +58,7 @@ Done and verified: lint and build pass; CI green; daily workflow ran successfull
 - Be honest in the UI and README: commits are made by automation and the README says so.
 - Verify before claiming: run lint, build and the routes.
 - Ask before publishing or pushing anything outward-facing.
+
+## Phase 1 expansion (done, not yet pushed at time of writing)
+Data and pages above. Real bank/sagha/black-market prices are NOT included: no open API exists, scraping needs a per-source terms check first.
+Next phases, in order: (2) Postgres + Drizzle behind `src/lib/rates.ts`, (3) bank and CBE official rates, sagha prices if a legal source is found, (4) OG share cards (needs an Arabic font for `ImageResponse`), Telegram alerts, English locale.

@@ -9,7 +9,7 @@ export function Converter({ rate, short }: { rate: number; short: string }) {
   const f = new Intl.NumberFormat("ar-EG", { maximumFractionDigits: 2 });
   return (
     <form className="grid gap-3" onSubmit={(e) => e.preventDefault()}>
-      <div className="flex gap-2" role="group" aria-label="اتجاه التحويل">
+      <div className="flex flex-wrap gap-2" role="group" aria-label="اتجاه التحويل">
         {[true, false].map((v) => (
           <button
             key={String(v)}

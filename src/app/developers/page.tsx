@@ -3,9 +3,13 @@ import type { Metadata } from "next";
 export const metadata: Metadata = { title: "للمطوّرين" };
 
 const endpoints = [
-  ["GET /api/v1/rates", "آخر سعر لكل العملات وتغيّر اليوم."],
-  ["GET /api/v1/rates/usd?days=30", "تاريخ عملة معيّنة (usd, eur, sar, gbp)، من يوم لـ ٣٦٥ يوم."],
-  ["GET /api/v1/gold", "سعر جرام الذهب عيار ٢٤ و٢١ و١٨ والجنيه الذهب."],
+  ["GET /api/v1/currencies", "قايمة العملات المتاحة ووحدة التسعير."],
+  ["GET /api/v1/rates", "آخر سعر لكل العملات، وتغيّر اليوم وتغيّر ٣٠ يوم."],
+  ["GET /api/v1/rates/usd?days=30", "تاريخ عملة معيّنة، من يوم لـ ٣٦٥ يوم."],
+  ["GET /api/v1/convert?from=usd&to=egp&amount=100", "تحويل بين أي عملتين (egp مسموح في الطرفين)."],
+  ["GET /api/v1/gold", "جرام الذهب عيار ٢٤ و٢١ و١٨ و١٤، والجنيه الذهب ونصفه والأوقية."],
+  ["GET /api/v1/gold/21?days=90", "تاريخ منتج ذهب (24, 21, 18, 14, pound, half-pound, ounce)."],
+  ["GET /api/v1/silver", "سعر جرام الفضة ٩٩٩ و٩٢٥."],
 ];
 
 export default function Developers() {
@@ -25,12 +29,15 @@ export default function Developers() {
       </ul>
       <h2 className="mt-12 text-xl font-semibold">مثال</h2>
       <pre dir="ltr" className="mt-3 overflow-x-auto rounded-2xl border border-line bg-paper-2 p-4 text-sm">
-{`curl https://YOUR-DOMAIN/api/v1/rates
+{`curl "https://YOUR-DOMAIN/api/v1/convert?from=usd&to=egp&amount=100"
 
 {
   "date": "2026-11-13",
-  "base": "EGP",
-  "rates": { "USD": { "egp": 53.4356, "change_1d": -0.1167 } }
+  "from": "USD",
+  "to": "EGP",
+  "amount": 100,
+  "rate": 53.4356,
+  "result": 5343.56
 }`}
       </pre>
     </main>

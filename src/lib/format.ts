@@ -12,3 +12,7 @@ export const fmtDate = (iso: string, style: "long" | "short" = "long") =>
     timeZone: "UTC",
     ...(style === "long" ? { day: "numeric", month: "long", year: "numeric" } : { day: "numeric", month: "short" }),
   }).format(new Date(iso));
+
+/** Large or small rates need more digits to stay meaningful (e.g. 0.0318). */
+export const fmtRate = (n: number) =>
+  new Intl.NumberFormat("ar-EG", { minimumFractionDigits: 2, maximumFractionDigits: n < 1 ? 4 : 2 }).format(n);

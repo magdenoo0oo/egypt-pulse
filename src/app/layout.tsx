@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans_Arabic, Reem_Kufi } from "next/font/google";
 import Link from "next/link";
+import { SITE } from "@/lib/currencies";
 import "./globals.css";
 import { getMeta } from "@/lib/rates";
 import { fmtDate } from "@/lib/format";
@@ -22,6 +23,7 @@ const plex = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE.url),
   title: { default: "تسعيرة: أسعار الدولار والذهب بالجنيه المصري كل يوم", template: "%s | تسعيرة" },
   description: "أسعار العملات والذهب مقابل الجنيه المصري، بتاريخ كامل وAPI مفتوح، بتتحدّث كل يوم.",
 };
@@ -30,13 +32,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ar" dir="rtl" className={`${reem.variable} ${plex.variable} antialiased`}>
       <body className="min-h-screen">
-        <header className="mx-auto flex max-w-5xl items-center justify-between px-4 py-5">
+        <header className="mx-auto flex max-w-5xl flex-col gap-1 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-5">
           <Link href="/" className="font-display text-2xl font-bold tracking-tight">
             تسعيرة
           </Link>
-          <nav className="flex gap-5 text-sm">
-            <Link href="/" className="hover:underline">الأسعار</Link>
-            <Link href="/developers" className="hover:underline">للمطوّرين</Link>
+          <nav aria-label="التنقل الرئيسي" className="flex flex-wrap gap-x-5 text-sm">
+            {[["/currencies", "العملات"], ["/gold", "الذهب"], ["/silver", "الفضة"], ["/convert", "المحوّل"], ["/movers", "الحركة"], ["/developers", "للمطوّرين"]].map(([h, l]) => (
+              <Link key={h} href={h} className="inline-flex min-h-11 items-center hover:underline">{l}</Link>
+            ))}
           </nav>
         </header>
         {children}
@@ -47,6 +50,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               المحلي ممكن يبقى كبير، وسعر الذهب بيزيد عليه مصنعية.
             </p>
             <FreshnessNote />
+            <p className="mt-3">
+              <Link href="/methodology" className="underline">المنهجية والمصادر</Link>
+            </p>
           </div>
         </footer>
       </body>

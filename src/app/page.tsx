@@ -1,11 +1,8 @@
 import Link from "next/link";
 import { Guilloche } from "@/components/Guilloche";
-import { Sparkline } from "@/components/Sparkline";
-import { CURRENCIES, change, getRows, karats, range, series, type Code } from "@/lib/rates";
+import { RateList, tone } from "@/components/RateList";
+import { CODES, change, getRows, karats, range, type Code } from "@/lib/rates";
 import { fmt, fmtDate, fmtInt, fmtPct, fmtSigned } from "@/lib/format";
-
-const tone = (n: number) => (n > 0 ? "text-down" : n < 0 ? "text-up" : "text-mute");
-// For a household, a rising foreign currency means the pound buys less, so up is shown as the warning tone.
 
 export default async function Home() {
   const rows = await getRows();
@@ -13,7 +10,7 @@ export default async function Home() {
   const usd = change(rows, "usd");
   const usd30 = range(rows, "usd");
   const k = karats(last.gold24);
-  const others: Code[] = ["eur", "sar", "gbp"];
+  const others: Code[] = ["eur", "gbp", "sar", "aed", "kwd", "qar"];
 
   return (
     <main className="mx-auto max-w-5xl px-4">
@@ -44,42 +41,48 @@ export default async function Home() {
 
       <section className="mt-16" aria-labelledby="fx">
         <h2 id="fx" className="font-display text-2xl font-bold">باقي العملات</h2>
-        <ul className="mt-4 divide-y divide-line border-y border-line">
-          {others.map((c) => {
-            const ch = change(rows, c, 30);
-            return (
-              <li key={c}>
-                <Link
-                  href={`/currency/${c}`}
-                  className="grid min-h-20 grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 py-3 hover:bg-paper-2 sm:grid-cols-[1.4fr_1fr_auto_6rem] sm:px-3"
-                >
-                  <span className="text-lg">{CURRENCIES[c].name}</span>
-                  <span className="font-display text-2xl font-bold">{fmt(last[c])}</span>
-                  <Sparkline values={series(rows, c, 30)} className={`hidden sm:block ${tone(ch.abs)}`} />
-                  <span className={`hidden text-end text-sm sm:block ${tone(ch.abs)}`}>{fmtPct(ch.pct)} / ٣٠ يوم</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="mt-4"><RateList rows={rows} codes={others} /></div>
+        <Link href="/currencies" className="mt-4 inline-flex min-h-11 items-center text-note underline">كل العملات ({CODES.length})</Link>
       </section>
 
       <section className="mt-16" aria-labelledby="gold">
         <h2 id="gold" className="font-display text-2xl font-bold">الذهب</h2>
         <p className="mt-1 text-mute">سعر الجرام بالجنيه، محسوب من السعر العالمي.</p>
-        <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4">
+        <ul className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4">
           {[
-            ["عيار ٢٤", k.k24],
-            ["عيار ٢١", k.k21],
-            ["عيار ١٨", k.k18],
-            ["الجنيه الذهب", k.pound],
-          ].map(([name, v]) => (
-            <div key={name as string} className="bg-paper p-5">
-              <dt className="text-mute">{name}</dt>
-              <dd className="mt-1 font-display text-3xl font-bold text-gold">{fmtInt(v as number)}</dd>
-            </div>
+            ["عيار ٢٤", k.k24, "24"],
+            ["عيار ٢١", k.k21, "21"],
+            ["عيار ١٨", k.k18, "18"],
+            ["الجنيه الذهب", k.pound, "pound"],
+          ].map(([name, v, t]) => (
+            <li key={name as string} className="bg-paper"><Link href={`/gold/${t}`} className="block h-full p-5 hover:bg-paper-2">
+              <span className="block text-mute">{name}</span>
+              <span className="mt-1 block font-display text-3xl font-bold text-gold">{fmtInt(v as number)}</span>
+            </Link></li>
           ))}
-        </dl>
+        </ul>
+        <p className="mt-4 flex flex-wrap gap-x-6 gap-y-1">
+          <Link href="/gold" className="inline-flex min-h-11 items-center text-note underline">حاسبة الذهب وكل العيارات</Link>
+          <Link href="/silver" className="inline-flex min-h-11 items-center text-note underline">الفضة: {fmt(last.silver)} جنيه للجرام</Link>
+        </p>
+      </section>
+
+      <section className="mt-16" aria-labelledby="tools">
+        <h2 id="tools" className="font-display text-2xl font-bold">أدوات</h2>
+        <ul className="mt-4 grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-3">
+          {[
+            ["/convert", "محوّل العملات", "بين أي عملتين والجنيه"],
+            ["/movers", "الحركة", "مين طلع ومين نزل خلال سنة"],
+            ["/developers", "API مفتوح", "نفس الداتا JSON بدون مفتاح"],
+          ].map(([h, t, d]) => (
+            <li key={h} className="bg-paper">
+              <Link href={h} className="block min-h-11 p-5 hover:bg-paper-2">
+                <span className="text-lg font-semibold">{t}</span>
+                <span className="block text-mute">{d}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
     </main>
   );

@@ -1,69 +1,86 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Guilloche } from "@/components/Guilloche";
+import { Sparkline } from "@/components/Sparkline";
+import { CURRENCIES, change, getRows, karats, range, series, type Code } from "@/lib/rates";
+import { fmt, fmtDate, fmtInt, fmtPct, fmtSigned } from "@/lib/format";
 
-export default function Home() {
+const tone = (n: number) => (n > 0 ? "text-down" : n < 0 ? "text-up" : "text-mute");
+// For a household, a rising foreign currency means the pound buys less, so up is shown as the warning tone.
+
+export default async function Home() {
+  const rows = await getRows();
+  const last = rows.at(-1)!;
+  const usd = change(rows, "usd");
+  const usd30 = range(rows, "usd");
+  const k = karats(last.gold24);
+  const others: Code[] = ["eur", "sar", "gbp"];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <main className="mx-auto max-w-5xl px-4">
+      <section className="relative overflow-hidden rounded-[28px] border border-line bg-paper-2 px-6 py-12 sm:px-12 sm:py-16">
+        <Guilloche />
+        <div className="relative">
+          <p className="text-mute">الدولار الأمريكي مقابل الجنيه · {fmtDate(last.date)}</p>
+          <h1 className="mt-2 font-display text-[clamp(4.5rem,18vw,10rem)] font-bold leading-none tracking-tight">
+            {fmt(last.usd)}
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-4 text-lg">
+            <span className={tone(usd.abs)}>
+              {fmtSigned(usd.abs)} ({fmtPct(usd.pct)})
+            </span>{" "}
+            عن اليوم السابق
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          <p className="mt-1 text-sm text-mute">
+            في آخر ٣٠ يوم: من {fmt(usd30.min)} إلى {fmt(usd30.max)}
+          </p>
+          <Link
+            href="/currency/usd"
+            className="mt-8 inline-flex min-h-11 items-center rounded-full bg-ink px-6 text-paper hover:opacity-90"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            شوف التاريخ والمحوّل
+          </Link>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="mt-16" aria-labelledby="fx">
+        <h2 id="fx" className="font-display text-2xl font-bold">باقي العملات</h2>
+        <ul className="mt-4 divide-y divide-line border-y border-line">
+          {others.map((c) => {
+            const ch = change(rows, c, 30);
+            return (
+              <li key={c}>
+                <Link
+                  href={`/currency/${c}`}
+                  className="grid min-h-20 grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 py-3 hover:bg-paper-2 sm:grid-cols-[1.4fr_1fr_auto_6rem] sm:px-3"
+                >
+                  <span className="text-lg">{CURRENCIES[c].name}</span>
+                  <span className="font-display text-2xl font-bold">{fmt(last[c])}</span>
+                  <Sparkline values={series(rows, c, 30)} className={`hidden sm:block ${tone(ch.abs)}`} />
+                  <span className={`hidden text-end text-sm sm:block ${tone(ch.abs)}`}>{fmtPct(ch.pct)} / ٣٠ يوم</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className="mt-16" aria-labelledby="gold">
+        <h2 id="gold" className="font-display text-2xl font-bold">الذهب</h2>
+        <p className="mt-1 text-mute">سعر الجرام بالجنيه، محسوب من السعر العالمي.</p>
+        <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4">
+          {[
+            ["عيار ٢٤", k.k24],
+            ["عيار ٢١", k.k21],
+            ["عيار ١٨", k.k18],
+            ["الجنيه الذهب", k.pound],
+          ].map(([name, v]) => (
+            <div key={name as string} className="bg-paper p-5">
+              <dt className="text-mute">{name}</dt>
+              <dd className="mt-1 font-display text-3xl font-bold text-gold">{fmtInt(v as number)}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    </main>
   );
 }

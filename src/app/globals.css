@@ -1,26 +1,52 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #e6ede4;
+  --paper-2: #d8e2d4;
+  --ink: #0f241c;
+  --mute: #4d6358;
+  --note: #1f5c46;
+  --gold: #7d5c0d;
+  --up: #1f6b4a;
+  --down: #a63d28;
+  --line: #b9c7bb;
 }
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #0d1914;
+    --paper-2: #14251d;
+    --ink: #e3ece1;
+    --mute: #93a89b;
+    --note: #5fb592;
+    --gold: #d9ae4a;
+    --up: #62c08f;
+    --down: #e58a72;
+    --line: #27392f;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-mute: var(--mute);
+  --color-note: var(--note);
+  --color-gold: var(--gold);
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --color-line: var(--line);
+  --font-display: var(--font-reem), system-ui, sans-serif;
+  --font-sans: var(--font-plex), system-ui, sans-serif;
 }
+
+html { background: var(--paper); color: var(--ink); }
+body { font-family: var(--font-sans); line-height: 1.7; font-feature-settings: "tnum"; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--note);
+  outline-offset: 3px;
+}
+
+/* One orchestrated moment: the rosette draws itself once. */
+@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.rosette path { stroke-dasharray: 1; stroke-dashoffset: 0; animation: draw 2.4s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .rosette path { animation: none; } }

@@ -7,7 +7,10 @@ import { DEFAULT_LOCALE, LOCALES } from "@/i18n/config";
 export type NavLink = { label: string; href: string; hint?: string };
 export type NavSection = { title?: string; links: NavLink[] };
 export type NavGroup = { id: string; label: string; cols: 1 | 2 | 3 | 5; sections: NavSection[]; footer?: NavLink };
-export type NavItem = NavGroup | { id: string; label: string; href: string };
+/** `show` surfaces a direct link in the bar only from that width up, so wide screens fill with shortcuts. */
+export type NavLeaf = { id: string; label: string; href: string; show?: "xl" | "2xl" | "3xl" };
+export type NavItem = NavGroup | NavLeaf;
+const SHOW = { xl: "hidden xl:inline-flex", "2xl": "hidden 2xl:inline-flex", "3xl": "hidden min-[1800px]:inline-flex" } as const;
 
 const isGroup = (i: NavItem): i is NavGroup => "sections" in i;
 
@@ -28,6 +31,11 @@ export function HeaderNav({ items, menuLabel, navLabel, children }: { items: Nav
   };
 
   const close = () => { setOpen(null); setMobile(false); };
+  // Hover opens a menu on mouse; a short grace period lets the pointer cross the gap into the sheet.
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const hold = () => clearTimeout(timer.current);
+  const release = (e: React.PointerEvent) => { if (e.pointerType === "mouse") { hold(); timer.current = setTimeout(() => setOpen(null), 220); } };
+  const enter = (id: string | null, e: React.PointerEvent) => { if (e.pointerType === "mouse") { hold(); setOpen(id); } };
   useEffect(() => {
     if (open === null && !mobile) return;
     const away = (e: PointerEvent) => !root.current?.parentElement?.contains(e.target as Node) && close();
@@ -37,7 +45,7 @@ export function HeaderNav({ items, menuLabel, navLabel, children }: { items: Nav
     return () => { document.removeEventListener("pointerdown", away); document.removeEventListener("keydown", esc); };
   }, [open, mobile]);
 
-  const link = "inline-flex min-h-11 items-center rounded-md px-3 hover:bg-paper-2";
+  const link = "min-h-12 cursor-pointer items-center whitespace-nowrap rounded-md px-3 text-base hover:bg-paper-2 xl:px-4 xl:text-lg";
   const grp = items.filter(isGroup).find((g) => g.id === open);
 
   const body = (g: NavGroup, cols: string) => (
@@ -63,17 +71,18 @@ export function HeaderNav({ items, menuLabel, navLabel, children }: { items: Nav
 
   return (
     <>
-      <nav ref={root} aria-label={navLabel} className="hidden items-center gap-x-0.5 lg:flex">
+      <nav ref={root} aria-label={navLabel} className="hidden flex-1 items-center justify-evenly lg:flex">
         {items.map((it) =>
           isGroup(it) ? (
             <button key={it.id} type="button" aria-expanded={open === it.id} aria-controls={`menu-${it.id}`}
               onClick={() => setOpen(open === it.id ? null : it.id)}
-              className={`${link} gap-1.5 ${open === it.id ? "bg-paper-2" : ""}`}>
+              onPointerEnter={(e) => enter(it.id, e)} onPointerLeave={release}
+              className={`${link} inline-flex gap-1.5 ${open === it.id ? "bg-paper-2" : ""}`}>
               {it.label}
               <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden className={`transition-transform ${open === it.id ? "rotate-180" : ""}`}><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
           ) : (
-            <Link key={it.id} href={it.href} className={link} aria-current={here(it.href) ? "page" : undefined} onClick={close}>{it.label}</Link>
+            <Link key={it.id} href={it.href} className={`${link} ${it.show ? SHOW[it.show] : "inline-flex"}`} aria-current={here(it.href) ? "page" : undefined} onClick={close} onPointerEnter={(e) => enter(null, e)}>{it.label}</Link>
           ),
         )}
       </nav>
@@ -90,7 +99,8 @@ export function HeaderNav({ items, menuLabel, navLabel, children }: { items: Nav
       </span>
 
       {grp && (
-        <div id={`menu-${grp.id}`} className="menu-sheet absolute inset-x-0 top-full z-40 hidden border-b border-line bg-paper shadow-lg lg:block">
+        <div id={`menu-${grp.id}`} onPointerEnter={(e) => enter(grp.id, e)} onPointerLeave={release}
+          className="menu-sheet absolute inset-x-0 top-full z-40 hidden border-b border-line bg-paper shadow-lg lg:block">
           <div className="mx-auto max-w-page px-4 py-5 sm:px-6 xl:px-12">
             {body(grp, grp.cols === 3 ? "grid-cols-3" : grp.cols === 5 ? "grid-cols-5" : grp.cols === 2 ? "grid-cols-2 max-w-3xl" : "max-w-sm")}
             {grp.footer && (
@@ -103,7 +113,7 @@ export function HeaderNav({ items, menuLabel, navLabel, children }: { items: Nav
       {mobile && (
         <div id="menu-mobile" className="menu-sheet absolute inset-x-0 top-full z-40 max-h-[80vh] overflow-y-auto border-b border-line bg-paper px-4 py-2 shadow-lg sm:px-6 lg:hidden">
           <ul className="divide-y divide-line">
-            {items.map((it) => (
+            {items.filter((it) => isGroup(it) || !it.show).map((it) => (
               <li key={it.id}>
                 {isGroup(it) ? (
                   <>

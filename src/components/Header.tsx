@@ -21,6 +21,7 @@ export async function Header() {
       })),
       footer: { label: `${t("nav.allCurrencies")} ←`, href: href("/currencies") },
     },
+    ...(["usd", "eur", "sar"] as const).map((c, i) => ({ id: `q-${c}`, label: f.cshort(c), href: href(`/currency/${c}`), show: (i < 2 ? "xl" : "2xl") as "xl" | "2xl" })),
     {
       id: "gold", label: t("footer.goldSilver"), cols: 2,
       sections: [
@@ -28,6 +29,9 @@ export async function Header() {
         { title: t("nav.silver"), links: [{ label: t("nav.allGold"), href: href("/gold") }, { label: t("nav.silver"), href: href("/silver") }] },
       ],
     },
+    { id: "q-g21", label: `${t("nav.gold")} ${t("gold.21")}`, href: href("/gold/21"), show: "xl" as const },
+    { id: "q-pound", label: t("gold.pound"), href: href("/gold/pound"), show: "3xl" as const },
+    { id: "q-silver", label: t("nav.silver"), href: href("/silver"), show: "2xl" as const },
     {
       id: "tools", label: t("footer.tools"), cols: 1,
       sections: [{ links: [{ label: t("nav.convert"), href: href("/convert") }, { label: t("nav.movers"), href: href("/movers") }] }],
@@ -38,6 +42,9 @@ export async function Header() {
         links: [{ label: t(`${k}.title` as "rc.title"), href: href(h), hint: t(`${k}.lead` as "rc.lead") }],
       })),
     },
+    { id: "q-race", label: t("nav.race"), href: href("/race"), show: "3xl" as const },
+    { id: "q-map", label: t("nav.map"), href: href("/map"), show: "3xl" as const },
+    { id: "q-matrix", label: t("nav.matrix"), href: href("/matrix"), show: "3xl" as const },
     {
       id: "guides", label: t("nav.guides"), cols: 1,
       sections: [{
@@ -54,7 +61,7 @@ export async function Header() {
 
   return (
     <header className="relative z-30 border-b border-line bg-paper">
-      <div className="mx-auto flex max-w-page items-center gap-x-4 px-4 py-3 sm:px-6 xl:px-12">
+      <div className="mx-auto flex max-w-page items-center gap-x-4 px-4 py-3 sm:px-6 lg:py-4 xl:gap-x-6 xl:px-12">
         <Link href={href("/")} className="inline-flex min-h-11 shrink-0 items-center gap-3" aria-label={t("site.homeAria", { name: t("brand") })}>
           <svg viewBox="0 0 40 40" width="36" height="36" aria-hidden="true" className="text-note">
             <circle cx="20" cy="20" r="18.5" fill="none" stroke="currentColor" strokeWidth="2" />

@@ -1,3 +1,4 @@
 {
+  "ignoreCommand": "bash scripts/vercel-ignore.sh",
   "crons": [{ "path": "/api/cron/revive", "schedule": "23 5 * * *" }]
 }

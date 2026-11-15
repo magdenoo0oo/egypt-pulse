@@ -7,7 +7,7 @@ Arabic-first dashboard and open API for the Egyptian pound: 18 currencies, gold 
   - `GET /api/v1/currencies`, `GET /api/v1/rates`, `GET /api/v1/rates/:code?days=30`
   - `GET /api/v1/convert?from=usd&to=egp&amount=100`
   - `GET /api/v1/gold`, `GET /api/v1/gold/:type?days=90`, `GET /api/v1/silver`
-- **Data pipeline:** `scripts/collect.ts` fetches daily reference rates, `.github/workflows/daily.yml` runs it every four hours, fills any missed day and commits `data/` (including a status record of every check). The dataset in git is the source of truth. Commits come from automation.
+- **Data pipeline:** `scripts/collect.ts` fetches daily reference rates, `.github/workflows/daily.yml` runs it 20 to 30 times a day at varied times (`scripts/plan.mjs` draws each day's count and times), fills any missed day and commits `data/` (including a status record of every check). The dataset in git is the source of truth. These commits are made by automation, and their number per day is randomized on purpose.
 - **Source:** [fawazahmed0/currency-api](https://github.com/fawazahmed0/exchange-api). Prices are mid-market and derived from the international gold spot price, not bank or jeweller prices.
 
 ## Run

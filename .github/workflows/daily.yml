@@ -1,13 +1,22 @@
 name: daily-data
 
-# Six runs a day (every 4 hours) so a delayed or dropped cron never costs a day. Every run is real work:
-# it fetches the latest rates, heals any missed days from the last week, and records the check in data/meta.json.
-# The source only publishes one new day, so runs after the first of the day are heartbeats: more would just be noise.
-# A second trigger (Vercel Cron -> /api/cron/revive) re-enables and restarts this workflow if GitHub ever pauses it.
+# Each UTC day gets its own plan of 20-30 checks at varied times (scripts/plan.mjs, deterministic per date; tune with
+# repo variables PLAN_MIN / PLAN_MAX). The cron below fires 144 times a day (every 10 min), far more than the plan needs, because GitHub
+# drops and delays scheduled runs: every firing asks the planner whether a slot is due, and the next firing that gets
+# through takes over a missed one. Runs that are not due exit in seconds, before npm ci, and commit nothing.
+# A due run is real work: it fetches the latest rates, heals any missed days from the last week, and records the check
+# in data/meta.json. One commit per run, at most the planned number per day, never two within 8 minutes.
+# Vercel skips the build of heartbeat-only commits when the live deploy is under 2 hours old (scripts/vercel-ignore.sh).
+# A second trigger (Vercel Cron -> /api/cron/revive) re-enables this workflow if GitHub ever pauses it and dispatches it.
 on:
   schedule:
-    - cron: "17 */4 * * *"
+    - cron: "3,13,23,33,43,53 * * * *"
   workflow_dispatch:
+    inputs:
+      force:
+        description: "Collect and commit now, even if no planned slot is due"
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -23,14 +32,34 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 100 # enough history to count today's data commits
+
+      - name: Ask the planner whether a slot is due
+        id: plan
+        env:
+          FORCE: ${{ inputs.force }}
+          PLAN_MIN: ${{ vars.PLAN_MIN }}
+          PLAN_MAX: ${{ vars.PLAN_MAX }}
+        run: |
+          done_today=$(git log --since="$(date -u +%F)T00:00:00Z" --format=%s | grep -c '^data: ' || true)
+          last=$(git log -1 --grep='^data: ' --format=%ct || true)
+          flag=""; [ "$FORCE" = "true" ] && flag="--force"
+          node scripts/plan.mjs --done "${done_today:-0}" --last "${last:-0}" $flag | tee -a "$GITHUB_OUTPUT"
+          { echo "### Planner"; echo; grep -E '^(date|planned|target|done|due|reason)=' "$GITHUB_OUTPUT" | sed 's/^/- /'; } >> "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/setup-node@v7
+        if: steps.plan.outputs.due == 'true'
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - if: steps.plan.outputs.due == 'true'
+        run: npm ci
       - name: Collect rates (also fills any day missed in the last week)
+        if: steps.plan.outputs.due == 'true'
         run: npx tsx scripts/collect.ts --backfill 7
       - name: Commit and push data
+        if: steps.plan.outputs.due == 'true'
         run: |
           git config user.name  "magdenoo0oo"
           git config user.email "195882873+magdenoo0oo@users.noreply.github.com"
@@ -38,12 +67,14 @@ jobs:
           if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
           git commit -m "data: $(date -u +'%F %H:%MZ')"
           ok=0
-          for i in 1 2 3; do
+          for i in 1 2 3 4 5; do
             if git pull --rebase -q && git push -q; then ok=1; break; fi
-            sleep 5
+            sleep $((i * 5))
           done
           [ "$ok" = 1 ]
+
       - name: Keep the schedule alive
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow enable daily.yml || true

@@ -4,6 +4,7 @@ name: daily-data
 # repo variables PLAN_MIN / PLAN_MAX). The cron below fires 144 times a day (every 10 min), far more than the plan needs, because GitHub
 # drops and delays scheduled runs: every firing asks the planner whether a slot is due, and the next firing that gets
 # through takes over a missed one. Runs that are not due exit in seconds, before npm ci, and commit nothing.
+# When the scheduler goes quiet anyway, a run that is still behind chains the next run itself (see the last steps).
 # A due run is real work: it fetches the latest rates, heals any missed days from the last week, and records the check
 # in data/meta.json. One commit per run, at most the planned number per day, never two within 8 minutes.
 # Vercel skips the build of heartbeat-only commits when the live deploy is under 2 hours old (scripts/vercel-ignore.sh).
@@ -29,7 +30,7 @@ concurrency:
 jobs:
   collect:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 25 # a chaining run waits up to 14 minutes before starting the next one
     steps:
       - uses: actions/checkout@v7
         with:
@@ -59,6 +60,7 @@ jobs:
         if: steps.plan.outputs.due == 'true'
         run: npx tsx scripts/collect.ts --backfill 7
       - name: Commit and push data
+        id: push
         if: steps.plan.outputs.due == 'true'
         run: |
           git config user.name  "magdenoo0oo"
@@ -72,6 +74,24 @@ jobs:
             sleep $((i * 5))
           done
           [ "$ok" = 1 ]
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+
+      # GitHub's scheduler can go quiet for hours. A run that committed and is still behind today's plan starts the next
+      # run itself (GITHUB_TOKEN may trigger workflow_dispatch) after a short random wait. The chain stops as soon as it
+      # has caught up, so runner time is spent only while behind and never exceeds the day's plan.
+      - name: Chain the next run while today's plan is behind
+        if: steps.push.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ steps.plan.outputs.target }}
+          DONE: ${{ steps.plan.outputs.done }}
+        run: |
+          behind=$(( ${TARGET:-0} - ${DONE:-0} - 1 ))
+          if [ "$behind" -lt 1 ]; then echo "caught up with today's plan"; exit 0; fi
+          wait=$(( 480 + RANDOM % 360 ))
+          echo "still $behind slot(s) behind: next run in $((wait / 60)) min"
+          sleep "$wait"
+          gh workflow run daily.yml --ref main -f force=false
 
       - name: Keep the schedule alive
         if: always()
